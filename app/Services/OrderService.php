@@ -31,7 +31,7 @@ class OrderService
         // Check inventory
         
         // Save using factory-created repository (could be MySQL, Cache, etc.)
-        // In a real implementation, you'd construct an Order object from $orderData
+        // In a real implementation, need to construct an Order object from $orderData
         // and call $this->repository->save($order)
         
         return $this->repository->save((object) $orderData);

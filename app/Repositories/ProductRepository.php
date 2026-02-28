@@ -27,7 +27,7 @@ class ProductRepository
      */
     public function findById(int $id): ?ProductInterface
     {
-        // In a real implementation, you'd query the database:
+        // In a real implementation, neeed to query the database:
         // $data = Product::find($id)?->toArray();
         // if (!$data) return null;
         // return ProductFactory::fromArray($data);

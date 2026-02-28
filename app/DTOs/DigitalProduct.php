@@ -8,40 +8,53 @@ use App\Contracts\ProductInterface;
 use App\Contracts\DownloadableInterface;
 
 /**
- * SOLID Principle: Interface Segregation Principle (ISP)
- * 
- * Digital product implements ProductInterface + DownloadableInterface.
- * It doesn't need shipping methods - ISP allows it to avoid implementing them.
- * 
- * ✅ Respects ISP - only implements relevant interfaces
+ * Digital product - implements ProductInterface + DownloadableInterface
  */
 class DigitalProduct implements ProductInterface, DownloadableInterface
 {
+    /**
+     * @return string
+     */
     public function getName(): string
     {
         return 'Windows 11 Pro License';
     }
 
+    /**
+     * @return float
+     */
     public function getPrice(): float
     {
         return 199.99;
     }
 
+    /**
+     * @return string
+     */
     public function getDescription(): string
     {
         return 'Digital software license';
     }
 
+    /**
+     * @return string
+     */
     public function getDownloadUrl(): string
     {
         return 'https://example.com/download/win11';
     }
 
+    /**
+     * @return int
+     */
     public function getFileSize(): int
     {
         return 5368709120; // 5GB in bytes
     }
 
+    /**
+     * @return string|null
+     */
     public function getLicenseKey(): ?string
     {
         return 'XXXXX-XXXXX-XXXXX-XXXXX';
