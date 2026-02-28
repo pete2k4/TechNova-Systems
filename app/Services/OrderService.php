@@ -5,51 +5,53 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Contracts\OrderRepositoryInterface;
-use App\Models\Order;
+use App\Factories\OrderRepositoryFactory;
 
-/**
- * SOLID Principle: Dependency Inversion Principle (DIP)
- * 
- * ✅ GOOD - High-level class depends on abstraction (OrderRepositoryInterface).
- * 
- * Key benefits:
- * - We can inject ANY implementation (MySQL, Cache, Mock for testing)
- * - OrderService doesn't know or care about the concrete implementation
- * - Easy to test: inject a mock repository
- * - Easy to switch: change binding in service provider
- * 
- * This is DIP in action: both high-level and low-level modules depend on abstraction.
- */
 class OrderService
 {
-    /**
-     * Depends on abstraction, not concrete implementation.
-     * Constructor injection via Laravel's service container.
-     */
-    public function __construct(
-        private readonly OrderRepositoryInterface $repository
-    ) {}
+    private readonly OrderRepositoryInterface $repository;
 
     /**
-     * Create a new order.
-     * Works with ANY OrderRepositoryInterface implementation.
+     * Uses factory to create repository based on config.
      */
-    public function createOrder(Order $order): bool
+    public function __construct()
+    {
+        $this->repository = OrderRepositoryFactory::fromConfig(config('order.repository', []));
+    }
+
+    /**
+     * @param array $orderData
+     * @return bool
+     */
+    public function createOrder(array $orderData): bool
     {
         // Business logic...
         // Validate order
         // Apply discounts
         // Check inventory
         
-        // Save using injected repository (could be MySQL, Cache, Mock, etc.)
-        return $this->repository->save($order);
+        // Save using factory-created repository (could be MySQL, Cache, etc.)
+        // In a real implementation, you'd construct an Order object from $orderData
+        // and call $this->repository->save($order)
+        
+        return $this->repository->save((object) $orderData);
     }
 
     /**
-     * Get user's orders.
+     * @param int $userId
+     * @return array
      */
     public function getUserOrders(int $userId): array
     {
         return $this->repository->findByUserId($userId);
+    }
+
+    /**
+     * @param OrderRepositoryInterface $repository
+     * @return void
+     */
+    public function setRepository(OrderRepositoryInterface $repository): void
+    {
+        $this->repository = $repository;
     }
 }

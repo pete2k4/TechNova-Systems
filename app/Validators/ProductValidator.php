@@ -4,31 +4,51 @@ declare(strict_types=1);
 
 namespace App\Validators;
 
-/**
- * SOLID Principle: Single Responsibility Principle (SRP)
- * 
- * This class has ONE responsibility: validating product data.
- * It doesn't handle persistence, business logic, or formatting - just validation.
- * 
- * ✅ Good: Focuses only on validation
- * ❌ Bad would be: Mixing validation + saving + email notifications in one class
- */
+use App\Contracts\ProductInterface;
+use App\Factories\ProductFactory;
+use InvalidArgumentException;
+
 class ProductValidator
 {
     /**
-     * Validates product data.
-     * 
      * @param array $data
-     * @return array Validation errors (empty if valid)
+     * @return array
      */
     public function validate(array $data): array
     {
         $errors = [];
         
-        // Validation logic would go here
-        // if (empty($data['name'])) { $errors[] = 'Name is required'; }
-        // if ($data['price'] <= 0) { $errors[] = 'Price must be positive'; }
+        // Validate required fields
+        if (empty($data['type'])) {
+            $errors[] = 'Product type is required';
+        } elseif (!in_array($data['type'], ['digital', 'physical'], true)) {
+            $errors[] = 'Product type must be either "digital" or "physical"';
+        }
+        
+        if (empty($data['name'])) {
+            $errors[] = 'Product name is required';
+        }
+        
+        if (empty($data['price']) || (float) $data['price'] <= 0) {
+            $errors[] = 'Product price must be greater than zero';
+        }
         
         return $errors;
+    }
+
+    /**
+     * @param array $data
+     * @return ProductInterface
+     * @throws InvalidArgumentException
+     */
+    public function validateAndCreate(array $data): ProductInterface
+    {
+        $errors = $this->validate($data);
+        
+        if (!empty($errors)) {
+            throw new InvalidArgumentException('Product validation failed: ' . implode(', ', $errors));
+        }
+        
+        return ProductFactory::fromArray($data);
     }
 }

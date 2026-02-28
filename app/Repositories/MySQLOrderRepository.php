@@ -5,34 +5,49 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Contracts\OrderRepositoryInterface;
-use App\Models\Order;
 
-/**
- * SOLID Principle: Dependency Inversion Principle (DIP)
- * 
- * ✅ GOOD - Low-level implementation depends on the abstraction.
- * This can be swapped with any other implementation without changing OrderService.
- */
 class MySQLOrderRepository implements OrderRepositoryInterface
 {
-    public function save(Order $order): bool
+    /**
+     * @param object $order
+     * @return bool
+     */
+    public function save($order): bool
     {
         // MySQL-specific implementation
         // return $order->save();
         return true;
     }
 
-    public function findById(int $id): ?Order
+    /**
+     * @param int $id
+     * @return object|null
+     */
+    public function findById(int $id): ?object
     {
-        // MySQL query
+        // MySQL query: select * from orders where id = ?
         // return Order::find($id);
         return null;
     }
 
+    /**
+     * @param int $userId
+     * @return array
+     */
     public function findByUserId(int $userId): array
     {
-        // MySQL query
+        // MySQL query: select * from orders where user_id = ?
         // return Order::where('user_id', $userId)->get()->toArray();
         return [];
+    }
+
+    /**
+     * @param int $id
+     * @return bool
+     */
+    public function delete(int $id): bool
+    {
+        // return Order::destroy($id) > 0;
+        return false;
     }
 }

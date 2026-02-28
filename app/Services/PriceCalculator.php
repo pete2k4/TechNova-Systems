@@ -5,27 +5,41 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Contracts\DiscountInterface;
+use App\Factories\DiscountFactory;
 
-/**
- * SOLID Principle: Open/Closed Principle (OCP)
- * 
- * The PriceCalculator works with any DiscountInterface implementation.
- * We can add new discount types without changing this class.
- * 
- * ✅ Open for extension: Add new discount classes
- * ✅ Closed for modification: This class doesn't change
- */
 class PriceCalculator
 {
     /**
-     * Calculate final price after applying discount.
+     * @param float $basePrice
+     * @param string $discountType
+     * @param float $discountValue
+     * @return float
      */
-    public function calculateFinalPrice(float $basePrice, DiscountInterface $discount): float
+    public function calculateDiscountedPrice(float $basePrice, string $discountType, float $discountValue): float
     {
-        // Logic would be:
-        // $discountAmount = $discount->calculate($basePrice);
-        // return $basePrice - $discountAmount;
-        
-        return 0.0;
+        $discount = DiscountFactory::create($discountType, $discountValue);
+        return $this->applyDiscount($basePrice, $discount);
+    }
+
+    /**
+     * @param float $basePrice
+     * @param array $discountConfig
+     * @return float
+     */
+    public function calculateFromConfig(float $basePrice, array $discountConfig): float
+    {
+        $discount = DiscountFactory::fromConfig($discountConfig);
+        return $this->applyDiscount($basePrice, $discount);
+    }
+
+    /**
+     * @param float $basePrice
+     * @param DiscountInterface $discount
+     * @return float
+     */
+    public function applyDiscount(float $basePrice, DiscountInterface $discount): float
+    {
+        $discountAmount = $discount->calculate($basePrice);
+        return max(0.0, $basePrice - $discountAmount);
     }
 }

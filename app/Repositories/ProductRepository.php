@@ -4,20 +4,15 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
+use App\Contracts\ProductInterface;
+use App\Factories\ProductFactory;
 use App\Models\Product;
 
-/**
- * SOLID Principle: Single Responsibility Principle (SRP)
- * 
- * This class has ONE responsibility: handling product data persistence.
- * It doesn't validate data or apply business rules - just database operations.
- * 
- * Each class should have only one reason to change.
- */
 class ProductRepository
 {
     /**
-     * Save a product to the database.
+     * @param Product $product
+     * @return bool
      */
     public function save(Product $product): bool
     {
@@ -27,21 +22,44 @@ class ProductRepository
     }
 
     /**
-     * Find a product by ID.
+     * @param int $id
+     * @return ProductInterface|null
      */
-    public function findById(int $id): ?Product
+    public function findById(int $id): ?ProductInterface
     {
-        // Database query logic would go here
-        // return Product::find($id);
+        // In a real implementation, you'd query the database:
+        // $data = Product::find($id)?->toArray();
+        // if (!$data) return null;
+        // return ProductFactory::fromArray($data);
+        
         return null;
     }
 
     /**
-     * Get all products.
+     * @return ProductInterface[]
      */
     public function all(): array
     {
-        // return Product::all()->toArray();
+        // In a real implementation:
+        // $products = Product::all();
+        // return $products->map(fn($p) => ProductFactory::fromArray($p->toArray()))->toArray();
+        
+        return [];
+    }
+
+    /**
+     * @param string $type
+     * @return ProductInterface[]
+     */
+    public function findByType(string $type): array
+    {
+        // Validate that this is a known product type
+        ProductFactory::create($type);
+        
+        // In a real implementation:
+        // $products = Product::where('type', $type)->get();
+        // return $products->map(fn($p) => ProductFactory::fromArray($p->toArray()))->toArray();
+        
         return [];
     }
 }

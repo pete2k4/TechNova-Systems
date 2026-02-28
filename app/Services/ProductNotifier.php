@@ -4,33 +4,59 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Contracts\ProductInterface;
+use App\Factories\ProductFactory;
 use App\Models\Product;
 
-/**
- * SOLID Principle: Single Responsibility Principle (SRP)
- * 
- * This class has ONE responsibility: sending notifications about products.
- * It doesn't handle validation or persistence - just notifications.
- * 
- * By separating concerns, we can change notification logic
- * without touching validation or database code.
- */
 class ProductNotifier
 {
     /**
-     * Notify about new product availability.
+     * @param array $productData
+     * @return void
      */
-    public function notifyNewProduct(Product $product): void
+    public function notifyNewProduct(array $productData): void
     {
+        $product = ProductFactory::fromArray($productData);
+        
         // Notification logic would go here
+        // Get subscribers and send notifications
         // Mail::to($subscribers)->send(new NewProductMail($product));
     }
 
     /**
-     * Notify about price drop.
+     * @param string $type
+     * @param array $data
+     * @return void
      */
-    public function notifyPriceDrop(Product $product, float $oldPrice): void
+    public function notifyNewProductByType(string $type, array $data = []): void
     {
-        // Price drop notification logic would go here
+        $product = ProductFactory::create($type, $data);
+        
+        // Mail::to($subscribers)->send(new NewProductMail($product));
+    }
+
+    /**
+     * @param ProductInterface $product
+     * @param float $oldPrice
+     * @return void
+     */
+    public function notifyPriceDrop(ProductInterface $product, float $oldPrice): void
+    {
+        $newPrice = $product->getPrice();
+        $discount = $oldPrice - $newPrice;
+        
+        // Notification logic would go here with discount information
+        // Mail::to($subscribers)->send(new PriceDropMail($product, $oldPrice, $newPrice, $discount));
+    }
+
+    /**
+     * @param array $productData
+     * @param float $oldPrice
+     * @return void
+     */
+    public function notifyPriceDropByData(array $productData, float $oldPrice): void
+    {
+        $product = ProductFactory::fromArray($productData);
+        $this->notifyPriceDrop($product, $oldPrice);
     }
 }

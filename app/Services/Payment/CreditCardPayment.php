@@ -6,30 +6,42 @@ namespace App\Services\Payment;
 
 use App\Contracts\PaymentMethodInterface;
 
-/**
- * SOLID Principle: Liskov Substitution Principle (LSP)
- * 
- * This class can be used anywhere PaymentMethodInterface is expected.
- * It respects the contract: process() returns bool, getName() returns string.
- * 
- * ✅ Substitutable for PaymentMethodInterface
- */
 class CreditCardPayment implements PaymentMethodInterface
 {
+    /**
+     * @param string $cardNumber
+     */
     public function __construct(
         private readonly string $cardNumber
     ) {}
 
+    /**
+     * @param float $amount
+     * @return bool
+     */
     public function process(float $amount): bool
     {
-        // Logic: Connect to payment gateway, process card payment
+        // In production, this would connect to a payment gateway
+        // $gateway = new PaymentGateway();
         // return $gateway->charge($this->cardNumber, $amount);
         
-        return true; // Demo
+        return true;
     }
 
+    /**
+     * @return string
+     */
     public function getName(): string
     {
         return 'Credit Card';
+    }
+
+    /**
+     * @return string
+     */
+    public function getMaskedCardNumber(): string
+    {
+        $lastFour = substr($this->cardNumber, -4);
+        return '**** **** **** ' . $lastFour;
     }
 }

@@ -6,25 +6,29 @@ namespace App\Services\Discount;
 
 use App\Contracts\DiscountInterface;
 
-/**
- * SOLID Principle: Open/Closed Principle (OCP)
- * 
- * This is a concrete implementation of DiscountInterface.
- * We can add new discount types by creating new classes
- * without modifying existing discount classes.
- */
 class PercentageDiscount implements DiscountInterface
 {
+    /**
+     * @param float $percentage
+     */
     public function __construct(
         private readonly float $percentage
     ) {}
 
     /**
-     * Calculate percentage-based discount.
+     * @param float $price
+     * @return float
      */
     public function calculate(float $price): float
     {
-        // Logic: return $price * ($this->percentage / 100);
-        return 0.0;
+        return $price * ($this->percentage / 100);
+    }
+
+    /**
+     * @return float
+     */
+    public function getPercentage(): float
+    {
+        return $this->percentage;
     }
 }
