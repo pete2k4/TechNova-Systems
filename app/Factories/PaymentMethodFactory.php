@@ -21,7 +21,6 @@ class PaymentMethodFactory
      * @throws InvalidArgumentException
      */
     public static function create(string $type, string $credential): PaymentMethodInterface
-    public static function create(string $type, string $credential): PaymentMethodInterface
     {
         if (empty($credential)) {
             throw new InvalidArgumentException('Payment credential cannot be empty');

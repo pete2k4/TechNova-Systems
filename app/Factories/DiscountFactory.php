@@ -21,7 +21,6 @@ class DiscountFactory
      * @throws InvalidArgumentException
      */
     public static function create(string $type, float $value): DiscountInterface
-    public static function create(string $type, float $value): DiscountInterface
     {
         if ($value < 0) {
             throw new InvalidArgumentException('Discount value cannot be negative');

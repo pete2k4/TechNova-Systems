@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Contracts\OrderRepositoryInterface;
+use App\Models\Order;
 
 class CachedOrderRepository implements OrderRepositoryInterface
 {
@@ -18,10 +19,10 @@ class CachedOrderRepository implements OrderRepositoryInterface
     ) {}
 
     /**
-     * @param object $order
+     * @param Order $order
      * @return bool
      */
-    public function save($order): bool
+    public function save(Order $order): bool
     {
         $result = $this->baseRepository->save($order);
         
@@ -35,9 +36,9 @@ class CachedOrderRepository implements OrderRepositoryInterface
 
     /**
      * @param int $id
-     * @return object|null
+     * @return Order|null
      */
-    public function findById(int $id): ?object
+    public function findById(int $id): ?Order
     {
         // Try cache first
         // if ($cached = Cache::get("order.{$id}")) {

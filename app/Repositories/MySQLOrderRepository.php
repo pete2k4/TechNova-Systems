@@ -5,14 +5,15 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Contracts\OrderRepositoryInterface;
+use App\Models\Order;
 
 class MySQLOrderRepository implements OrderRepositoryInterface
 {
     /**
-     * @param object $order
+     * @param Order $order
      * @return bool
      */
-    public function save($order): bool
+    public function save(Order $order): bool
     {
         // MySQL-specific implementation
         // return $order->save();
@@ -21,9 +22,9 @@ class MySQLOrderRepository implements OrderRepositoryInterface
 
     /**
      * @param int $id
-     * @return object|null
+     * @return Order|null
      */
-    public function findById(int $id): ?object
+    public function findById(int $id): ?Order
     {
         // MySQL query: select * from orders where id = ?
         // return Order::find($id);
