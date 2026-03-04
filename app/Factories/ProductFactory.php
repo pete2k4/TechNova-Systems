@@ -16,21 +16,25 @@ class ProductFactory
     public const DIGITAL = 'digital';
     public const PHYSICAL = 'physical';
 
-    private static ?ProductPrototypeRegistry $prototypeRegistry = null;
+    private static bool $initialized = false;
+
+    private static function ensureInitialized(): void
+    {
+        if (!self::$initialized) {
+            self::registry()->register(self::DIGITAL, new DigitalProduct());
+            self::registry()->register(self::PHYSICAL, new PhysicalProduct());
+            self::$initialized = true;
+        }
+    }
 
     private static function registry(): ProductPrototypeRegistry
     {
-        if (self::$prototypeRegistry === null) {
-            self::$prototypeRegistry = new ProductPrototypeRegistry();
-            self::$prototypeRegistry->register(self::DIGITAL, new DigitalProduct());
-            self::$prototypeRegistry->register(self::PHYSICAL, new PhysicalProduct());
-        }
-
-        return self::$prototypeRegistry;
+        return ProductPrototypeRegistry::getInstance();
     }
 
     public static function registerPrototype(string $type, ProductInterface&PrototypeInterface $prototype): void
     {
+        self::ensureInitialized();
         self::registry()->register($type, $prototype);
     }
 
@@ -42,6 +46,8 @@ class ProductFactory
      */
     public static function create(string $type, array $data = []): ProductInterface
     {
+        self::ensureInitialized();
+        
         $normalizedType = strtolower($type);
 
         if (!self::registry()->has($normalizedType)) {
@@ -57,6 +63,8 @@ class ProductFactory
      */
     public static function createDigitalProduct(array $data = []): DigitalProduct
     {
+        self::ensureInitialized();
+        
         /** @var DigitalProduct $product */
         $product = self::registry()->getClone(self::DIGITAL);
         return $product;
@@ -68,6 +76,8 @@ class ProductFactory
      */
     public static function createPhysicalProduct(array $data = []): PhysicalProduct
     {
+        self::ensureInitialized();
+        
         /** @var PhysicalProduct $product */
         $product = self::registry()->getClone(self::PHYSICAL);
         return $product;
