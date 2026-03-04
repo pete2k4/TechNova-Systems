@@ -5,13 +5,19 @@ declare(strict_types=1);
 namespace App\DTOs;
 
 use App\Contracts\ProductInterface;
+use App\Contracts\PrototypeInterface;
 use App\Contracts\ShippableInterface;
 
 /**
  * Physical product - implements ProductInterface + ShippableInterface
  */
-class PhysicalProduct implements ProductInterface, ShippableInterface
+class PhysicalProduct implements ProductInterface, ShippableInterface, PrototypeInterface
 {
+    public function clonePrototype(): static
+    {
+        return clone $this;
+    }
+
     /**
      * @return string
      */

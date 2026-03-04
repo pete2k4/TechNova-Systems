@@ -5,13 +5,19 @@ declare(strict_types=1);
 namespace App\DTOs;
 
 use App\Contracts\ProductInterface;
+use App\Contracts\PrototypeInterface;
 use App\Contracts\DownloadableInterface;
 
 /**
  * Digital product - implements ProductInterface + DownloadableInterface
  */
-class DigitalProduct implements ProductInterface, DownloadableInterface
+class DigitalProduct implements ProductInterface, DownloadableInterface, PrototypeInterface
 {
+    public function clonePrototype(): static
+    {
+        return clone $this;
+    }
+
     /**
      * @return string
      */

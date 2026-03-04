@@ -5,14 +5,34 @@ declare(strict_types=1);
 namespace App\Factories;
 
 use App\Contracts\ProductInterface;
+use App\Contracts\PrototypeInterface;
 use App\DTOs\DigitalProduct;
 use App\DTOs\PhysicalProduct;
+use App\Prototypes\ProductPrototypeRegistry;
 use InvalidArgumentException;
 
 class ProductFactory
 {
     public const DIGITAL = 'digital';
     public const PHYSICAL = 'physical';
+
+    private static ?ProductPrototypeRegistry $prototypeRegistry = null;
+
+    private static function registry(): ProductPrototypeRegistry
+    {
+        if (self::$prototypeRegistry === null) {
+            self::$prototypeRegistry = new ProductPrototypeRegistry();
+            self::$prototypeRegistry->register(self::DIGITAL, new DigitalProduct());
+            self::$prototypeRegistry->register(self::PHYSICAL, new PhysicalProduct());
+        }
+
+        return self::$prototypeRegistry;
+    }
+
+    public static function registerPrototype(string $type, ProductInterface&PrototypeInterface $prototype): void
+    {
+        self::registry()->register($type, $prototype);
+    }
 
     /**
      * @param string $type
@@ -22,11 +42,13 @@ class ProductFactory
      */
     public static function create(string $type, array $data = []): ProductInterface
     {
-        return match (strtolower($type)) {
-            self::DIGITAL => self::createDigitalProduct($data),
-            self::PHYSICAL => self::createPhysicalProduct($data),
-            default => throw new InvalidArgumentException("Unknown product type: {$type}"),
-        };
+        $normalizedType = strtolower($type);
+
+        if (!self::registry()->has($normalizedType)) {
+            throw new InvalidArgumentException("Unknown product type: {$type}");
+        }
+
+        return self::registry()->getClone($normalizedType);
     }
 
     /**
@@ -35,7 +57,9 @@ class ProductFactory
      */
     public static function createDigitalProduct(array $data = []): DigitalProduct
     {
-        return new DigitalProduct();
+        /** @var DigitalProduct $product */
+        $product = self::registry()->getClone(self::DIGITAL);
+        return $product;
     }
 
     /**
@@ -44,7 +68,9 @@ class ProductFactory
      */
     public static function createPhysicalProduct(array $data = []): PhysicalProduct
     {
-        return new PhysicalProduct();
+        /** @var PhysicalProduct $product */
+        $product = self::registry()->getClone(self::PHYSICAL);
+        return $product;
     }
 
     /**

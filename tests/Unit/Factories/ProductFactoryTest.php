@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Factories;
 
 use App\Contracts\ProductInterface;
+use App\Contracts\PrototypeInterface;
 use App\DTOs\DigitalProduct;
 use App\DTOs\PhysicalProduct;
 use App\Factories\ProductFactory;
@@ -120,5 +121,55 @@ class ProductFactoryTest extends TestCase
     {
         $this->assertEquals('digital', ProductFactory::DIGITAL);
         $this->assertEquals('physical', ProductFactory::PHYSICAL);
+    }
+
+    /**
+     * Test factory returns clones (Prototype pattern)
+     */
+    public function testFactoryReturnsDistinctInstancesFromPrototypes(): void
+    {
+        $product1 = ProductFactory::create('digital');
+        $product2 = ProductFactory::create('digital');
+
+        $this->assertInstanceOf(DigitalProduct::class, $product1);
+        $this->assertInstanceOf(DigitalProduct::class, $product2);
+        $this->assertNotSame($product1, $product2);
+    }
+
+    /**
+     * Test custom prototype registration and cloning
+     */
+    public function testCustomPrototypeCanBeRegistered(): void
+    {
+        $prototype = new class implements ProductInterface, PrototypeInterface {
+            public function getName(): string
+            {
+                return 'Prototype Subscription';
+            }
+
+            public function getPrice(): float
+            {
+                return 49.99;
+            }
+
+            public function getDescription(): string
+            {
+                return 'Custom prototype product';
+            }
+
+            public function clonePrototype(): static
+            {
+                return clone $this;
+            }
+        };
+
+        ProductFactory::registerPrototype('custom_subscription', $prototype);
+
+        $clone1 = ProductFactory::create('custom_subscription');
+        $clone2 = ProductFactory::create('custom_subscription');
+
+        $this->assertSame('Prototype Subscription', $clone1->getName());
+        $this->assertSame(49.99, $clone1->getPrice());
+        $this->assertNotSame($clone1, $clone2);
     }
 }
