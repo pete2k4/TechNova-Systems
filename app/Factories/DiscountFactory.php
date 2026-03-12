@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Factories;
 
 use App\Contracts\DiscountInterface;
+use App\Services\Discount\CompositeDiscount;
 use App\Services\Discount\FixedAmountDiscount;
 use App\Services\Discount\PercentageDiscount;
 use InvalidArgumentException;
@@ -67,5 +68,29 @@ class DiscountFactory
         $value = $config['value'] ?? throw new InvalidArgumentException('Missing discount value');
 
         return self::create($type, (float) $value);
+    }
+
+    /**
+     * Build a CompositeDiscount from an array of individual discount configs.
+     *
+     * Each element must have 'type' and 'value' keys (same shape as fromConfig).
+     *
+     * @param array<int, array{type: string, value: float}> $configs
+     * @return CompositeDiscount
+     * @throws InvalidArgumentException
+     */
+    public static function createComposite(array $configs): CompositeDiscount
+    {
+        if (empty($configs)) {
+            throw new InvalidArgumentException('Composite discount requires at least one discount');
+        }
+
+        $composite = new CompositeDiscount();
+
+        foreach ($configs as $config) {
+            $composite->add(self::fromConfig($config));
+        }
+
+        return $composite;
     }
 }

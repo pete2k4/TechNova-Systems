@@ -6,6 +6,7 @@ namespace Tests\Unit\Factories;
 
 use App\Contracts\DiscountInterface;
 use App\Factories\DiscountFactory;
+use App\Services\Discount\CompositeDiscount;
 use App\Services\Discount\FixedAmountDiscount;
 use App\Services\Discount\PercentageDiscount;
 use InvalidArgumentException;
@@ -163,5 +164,59 @@ class DiscountFactoryTest extends TestCase
     {
         $this->assertEquals('fixed', DiscountFactory::FIXED_AMOUNT);
         $this->assertEquals('percentage', DiscountFactory::PERCENTAGE);
+    }
+
+    /**
+     * createComposite returns a CompositeDiscount implementing DiscountInterface
+     */
+    public function testCreateCompositeReturnsCompositeDiscount(): void
+    {
+        $composite = DiscountFactory::createComposite([
+            ['type' => 'fixed', 'value' => 10.0],
+            ['type' => 'percentage', 'value' => 20.0],
+        ]);
+
+        $this->assertInstanceOf(DiscountInterface::class, $composite);
+        $this->assertInstanceOf(CompositeDiscount::class, $composite);
+        $this->assertCount(2, $composite->getDiscounts());
+    }
+
+    /**
+     * createComposite with a single config behaves like that leaf
+     */
+    public function testCreateCompositeSingleDiscount(): void
+    {
+        $composite = DiscountFactory::createComposite([
+            ['type' => 'fixed', 'value' => 25.0],
+        ]);
+
+        $this->assertInstanceOf(CompositeDiscount::class, $composite);
+        $this->assertSame(25.0, $composite->calculate(100.0));
+    }
+
+    /**
+     * createComposite applies children sequentially through calculate()
+     *
+     * 10% of $200 = $20 → remaining $180, then $30 off = $30 → total $50
+     */
+    public function testCreateCompositeAppliesDiscountsSequentially(): void
+    {
+        $composite = DiscountFactory::createComposite([
+            ['type' => 'percentage', 'value' => 10.0],
+            ['type' => 'fixed', 'value' => 30.0],
+        ]);
+
+        $this->assertEqualsWithDelta(50.0, $composite->calculate(200.0), 0.001);
+    }
+
+    /**
+     * createComposite with empty array throws exception
+     */
+    public function testCreateCompositeEmptyArrayThrowsException(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Composite discount requires at least one discount');
+
+        DiscountFactory::createComposite([]);
     }
 }
