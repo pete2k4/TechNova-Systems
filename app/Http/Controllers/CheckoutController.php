@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Factories\CommerceFactorySelector;
+use App\Facades\CheckoutFacade;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
-use App\Services\CheckoutService;
+use App\Services\Payment\PaymentProcessor;
+use App\Services\PriceCalculator;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -55,17 +56,6 @@ class CheckoutController extends Controller
         ]);
 
         try {
-            $cartTotal = 0;
-            foreach ($cart as $item) {
-                $cartTotal += $item['price'] * $item['quantity'];
-            }
-
-            $discountAmount = $validated['discount_type'] === 'percentage'
-                ? $cartTotal * ($validated['discount_value'] / 100)
-                : $validated['discount_value'];
-
-            $finalTotal = max(0, $cartTotal - $discountAmount);
-
             $discountConfig = [
                 'type' => $validated['discount_type'],
                 'value' => (float) $validated['discount_value'],
@@ -80,16 +70,17 @@ class CheckoutController extends Controller
             $productTypes = array_unique(array_map(fn($item) => $item['type'], $cart));
             $primaryType = in_array('physical', $productTypes) ? 'physical' : 'digital';
 
-            $checkout = new CheckoutService($primaryType);
-            $factory = $checkout->getFactory();
+            // Facade hides PriceCalculator + PaymentProcessor + CommerceFactorySelector
+            $facade = new CheckoutFacade(new PriceCalculator(), new PaymentProcessor());
+            $result = $facade->processCart($cart, $discountConfig, $paymentData, $primaryType);
 
             // Create order
             $order = Order::create([
                 'user_id' => auth()->id() ?? 1, // Default guest user
                 'order_number' => 'ORD-' . strtoupper(uniqid()),
-                'subtotal' => $cartTotal,
-                'discount' => $discountAmount,
-                'total' => $finalTotal,
+                'subtotal' => $result->subtotal,
+                'discount' => $result->discountAmount,
+                'total' => $result->finalTotal,
                 'status' => 'completed',
                 'payment_method' => $validated['payment_type'],
                 'payment_credential' => $validated['payment_credential'],
@@ -116,8 +107,8 @@ class CheckoutController extends Controller
 
             return view('marketplace.order-confirmation', [
                 'order' => $order,
-                'factoryName' => $factory->getFamilyName(),
-                'factoryClass' => class_basename($factory::class),
+                'factoryName' => $result->factoryFamilyName,
+                'factoryClass' => $result->factoryClass,
                 'discount' => $discountConfig,
             ]);
         } catch (\Exception $e) {
