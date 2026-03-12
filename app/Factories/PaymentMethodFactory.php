@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Factories;
 
 use App\Contracts\PaymentMethodInterface;
+use App\Services\Payment\Adapters\FastPayAdapter;
 use App\Services\Payment\CreditCardPayment;
+use App\Services\Payment\Gateways\FastPayGateway;
 use App\Services\Payment\PayPalPayment;
 use InvalidArgumentException;
 
@@ -13,6 +15,7 @@ class PaymentMethodFactory
 {
     public const CREDIT_CARD = 'credit_card';
     public const PAYPAL = 'paypal';
+    public const FAST_PAY = 'fast_pay';
 
     /**
      * @param string $type
@@ -29,6 +32,7 @@ class PaymentMethodFactory
         return match (strtolower($type)) {
             self::CREDIT_CARD => self::createCreditCardPayment($credential),
             self::PAYPAL => self::createPayPalPayment($credential),
+            self::FAST_PAY, 'fastpay' => self::createFastPayPayment($credential),
             default => throw new InvalidArgumentException("Unknown payment method: {$type}"),
         };
     }
@@ -62,6 +66,20 @@ class PaymentMethodFactory
     }
 
     /**
+     * @param string $customerToken
+     * @return FastPayAdapter
+     * @throws InvalidArgumentException
+     */
+    public static function createFastPayPayment(string $customerToken): FastPayAdapter
+    {
+        if (!self::isValidFastPayToken($customerToken)) {
+            throw new InvalidArgumentException('Invalid FastPay customer token');
+        }
+
+        return new FastPayAdapter(new FastPayGateway(), $customerToken);
+    }
+
+    /**
      * @param array $config
      * @return PaymentMethodInterface
      * @throws InvalidArgumentException
@@ -85,5 +103,14 @@ class PaymentMethodFactory
 
         // Check if it's numeric and length is reasonable
         return preg_match('/^\d{13,19}$/', $cardNumber) === 1;
+    }
+
+    /**
+     * @param string $customerToken
+     * @return bool
+     */
+    private static function isValidFastPayToken(string $customerToken): bool
+    {
+        return preg_match('/^fp_[A-Za-z0-9_]{8,}$/', $customerToken) === 1;
     }
 }

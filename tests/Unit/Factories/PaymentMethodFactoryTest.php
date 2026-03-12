@@ -6,6 +6,7 @@ namespace Tests\Unit\Factories;
 
 use App\Contracts\PaymentMethodInterface;
 use App\Factories\PaymentMethodFactory;
+use App\Services\Payment\Adapters\FastPayAdapter;
 use App\Services\Payment\CreditCardPayment;
 use App\Services\Payment\PayPalPayment;
 use InvalidArgumentException;
@@ -36,6 +37,18 @@ class PaymentMethodFactoryTest extends TestCase
     }
 
     /**
+     * Test creating FastPay payment through adapter
+     */
+    public function testCreateFastPayPayment(): void
+    {
+        $payment = PaymentMethodFactory::create('fast_pay', 'fp_customer_12345678');
+
+        $this->assertInstanceOf(PaymentMethodInterface::class, $payment);
+        $this->assertInstanceOf(FastPayAdapter::class, $payment);
+        $this->assertSame('FastPay', $payment->getName());
+    }
+
+    /**
      * Test create credit card directly
      */
     public function testCreateCreditCardDirectly(): void
@@ -56,15 +69,27 @@ class PaymentMethodFactoryTest extends TestCase
     }
 
     /**
+     * Test create FastPay adapter directly
+     */
+    public function testCreateFastPayDirectly(): void
+    {
+        $payment = PaymentMethodFactory::createFastPayPayment('fp_customer_12345678');
+
+        $this->assertInstanceOf(FastPayAdapter::class, $payment);
+    }
+
+    /**
      * Test case insensitivity
      */
     public function testCreateIsCaseInsensitive(): void
     {
         $payment1 = PaymentMethodFactory::create('CREDIT_CARD', '4532015112830366');
         $payment2 = PaymentMethodFactory::create('Credit_Card', '4532015112830366');
+        $payment3 = PaymentMethodFactory::create('FAST_PAY', 'fp_customer_12345678');
 
         $this->assertInstanceOf(CreditCardPayment::class, $payment1);
         $this->assertInstanceOf(CreditCardPayment::class, $payment2);
+        $this->assertInstanceOf(FastPayAdapter::class, $payment3);
     }
 
     /**
@@ -101,6 +126,17 @@ class PaymentMethodFactoryTest extends TestCase
     }
 
     /**
+     * Test invalid FastPay token throws exception
+     */
+    public function testInvalidFastPayTokenThrowsException(): void
+    {
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('Invalid FastPay customer token');
+
+        PaymentMethodFactory::create('fast_pay', 'invalid-token');
+    }
+
+    /**
      * Test unknown payment method throws exception
      */
     public function testUnknownPaymentMethodThrowsException(): void
@@ -117,11 +153,11 @@ class PaymentMethodFactoryTest extends TestCase
     public function testValidCreditCardFormats(): void
     {
         $validCards = [
-            '4532015112830366', // 16 digits
-            '378282246310005',  // 15 digits (Amex)
-            '5425233010103442', // 16 digits
-            '4111111111111111', // 16 digits
-            '5500005555555559', // 16 digits
+            '4532015112830366',
+            '378282246310005',
+            '5425233010103442',
+            '4111111111111111',
+            '5500005555555559',
         ];
 
         foreach ($validCards as $card) {
@@ -202,5 +238,6 @@ class PaymentMethodFactoryTest extends TestCase
     {
         $this->assertEquals('credit_card', PaymentMethodFactory::CREDIT_CARD);
         $this->assertEquals('paypal', PaymentMethodFactory::PAYPAL);
+        $this->assertEquals('fast_pay', PaymentMethodFactory::FAST_PAY);
     }
 }
