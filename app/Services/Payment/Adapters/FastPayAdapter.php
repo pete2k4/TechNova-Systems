@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Services\Payment\Adapters;
 
-use App\Contracts\PaymentMethodInterface;
+use App\Services\Payment\Bridge\AbstractPaymentMethod;
 use App\Services\Payment\Gateways\FastPayGateway;
 
-class FastPayAdapter implements PaymentMethodInterface
+class FastPayAdapter extends AbstractPaymentMethod
 {
     /**
      * @param FastPayGateway $gateway
@@ -16,7 +16,9 @@ class FastPayAdapter implements PaymentMethodInterface
     public function __construct(
         private readonly FastPayGateway $gateway,
         private readonly string $customerToken
-    ) {}
+    ) {
+        parent::__construct($gateway, $customerToken);
+    }
 
     /**
      * @param float $amount
@@ -24,12 +26,7 @@ class FastPayAdapter implements PaymentMethodInterface
      */
     public function process(float $amount): bool
     {
-        $response = $this->gateway->charge(
-            $this->customerToken,
-            (int) round($amount * 100)
-        );
-
-        return ($response['status'] ?? null) === 'approved';
+        return parent::process($amount);
     }
 
     /**

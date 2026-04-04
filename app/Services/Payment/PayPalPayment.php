@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace App\Services\Payment;
 
-use App\Contracts\PaymentMethodInterface;
+use App\Services\Payment\Bridge\AbstractPaymentMethod;
+use App\Services\Payment\Gateways\PayPalGateway;
 
-class PayPalPayment implements PaymentMethodInterface
+class PayPalPayment extends AbstractPaymentMethod
 {
     /**
      * @param string $email
      */
     public function __construct(
         private readonly string $email
-    ) {}
+    ) {
+        parent::__construct(new PayPalGateway(), $email);
+    }
 
     /**
      * @param float $amount
@@ -21,11 +24,7 @@ class PayPalPayment implements PaymentMethodInterface
      */
     public function process(float $amount): bool
     {
-        // In production, this would connect to PayPal API
-        // $paypalApi = new PayPalAPI();
-        // return $paypalApi->charge($this->email, $amount);
-        
-        return true;
+        return parent::process($amount);
     }
 
     /**

@@ -4,16 +4,19 @@ declare(strict_types=1);
 
 namespace App\Services\Payment;
 
-use App\Contracts\PaymentMethodInterface;
+use App\Services\Payment\Bridge\AbstractPaymentMethod;
+use App\Services\Payment\Gateways\CreditCardGateway;
 
-class CreditCardPayment implements PaymentMethodInterface
+class CreditCardPayment extends AbstractPaymentMethod
 {
     /**
      * @param string $cardNumber
      */
     public function __construct(
         private readonly string $cardNumber
-    ) {}
+    ) {
+        parent::__construct(new CreditCardGateway(), $cardNumber);
+    }
 
     /**
      * @param float $amount
@@ -21,11 +24,7 @@ class CreditCardPayment implements PaymentMethodInterface
      */
     public function process(float $amount): bool
     {
-        // In production, this would connect to a payment gateway
-        // $gateway = new PaymentGateway();
-        // return $gateway->charge($this->cardNumber, $amount);
-        
-        return true;
+        return parent::process($amount);
     }
 
     /**

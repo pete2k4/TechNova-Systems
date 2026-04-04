@@ -6,18 +6,18 @@ namespace App\Services\Payment\Gateways;
 
 use App\Contracts\PaymentGatewayInterface;
 
-class FastPayGateway implements PaymentGatewayInterface
+class CreditCardGateway implements PaymentGatewayInterface
 {
     /**
-     * @param string $customerToken
+     * @param string $credential
      * @param int $amountInCents
      * @return array{status: string, transaction_id: string}
      */
-    public function charge(string $customerToken, int $amountInCents): array
+    public function charge(string $credential, int $amountInCents): array
     {
         return [
             'status' => 'approved',
-            'transaction_id' => 'fp_' . substr(md5($customerToken . ':' . $amountInCents), 0, 12),
+            'transaction_id' => 'cc_' . substr(md5($credential . ':' . $amountInCents), 0, 12),
         ];
     }
 }
