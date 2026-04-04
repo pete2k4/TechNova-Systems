@@ -3,6 +3,10 @@
 namespace App\Providers;
 
 use App\Contracts\ProductRepositoryInterface;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Observers\OrderItemObserver;
+use App\Observers\OrderObserver;
 use Illuminate\Support\ServiceProvider;
 use App\Contracts\OrderRepositoryInterface;
 use App\Proxies\ProductRepositoryProxy;
@@ -44,6 +48,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Order::observe(OrderObserver::class);
+        OrderItem::observe(OrderItemObserver::class);
     }
 }

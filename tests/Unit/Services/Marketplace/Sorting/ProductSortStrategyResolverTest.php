@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Services\Marketplace\Sorting;
 
+use App\Models\Product;
 use App\Services\Marketplace\Sorting\ProductSortStrategyResolver;
 use App\Services\Marketplace\Sorting\Strategies\NameAscendingSortStrategy;
 use App\Services\Marketplace\Sorting\Strategies\NewestProductsSortStrategy;
 use App\Services\Marketplace\Sorting\Strategies\PriceAscendingSortStrategy;
 use App\Services\Marketplace\Sorting\Strategies\PriceDescendingSortStrategy;
-use Illuminate\Database\Eloquent\Builder;
-use PHPUnit\Framework\TestCase;
+use Tests\TestCase;
 
 class ProductSortStrategyResolverTest extends TestCase
 {
@@ -57,67 +57,44 @@ class ProductSortStrategyResolverTest extends TestCase
 
     public function testNewestStrategyOrdersByCreatedAtDescThenIdDesc(): void
     {
-        $builder = $this->createMock(Builder::class);
-        $builder->expects($this->exactly(2))
-            ->method('orderByDesc')
-            ->willReturnCallback(function (string $column) use ($builder): Builder {
-                $this->assertContains($column, ['created_at', 'id']);
-                return $builder;
-            });
+        $query = (new NewestProductsSortStrategy())->apply(Product::query());
+        $sql = strtolower($query->toSql());
 
-        $result = (new NewestProductsSortStrategy())->apply($builder);
-
-        $this->assertSame($builder, $result);
+        $this->assertStringContainsString('order by', $sql);
+        $this->assertStringContainsString('created_at', $sql);
+        $this->assertStringContainsString('id', $sql);
+        $this->assertStringContainsString('desc', $sql);
     }
 
     public function testPriceAscendingStrategyOrdersByPriceAsc(): void
     {
-        $builder = $this->createMock(Builder::class);
-        $builder->expects($this->once())
-            ->method('orderBy')
-            ->with('price', 'asc')
-            ->willReturnSelf();
-        $builder->expects($this->once())
-            ->method('orderByDesc')
-            ->with('created_at')
-            ->willReturnSelf();
+        $query = (new PriceAscendingSortStrategy())->apply(Product::query());
+        $sql = strtolower($query->toSql());
 
-        $result = (new PriceAscendingSortStrategy())->apply($builder);
-
-        $this->assertSame($builder, $result);
+        $this->assertStringContainsString('price', $sql);
+        $this->assertStringContainsString('asc', $sql);
+        $this->assertStringContainsString('created_at', $sql);
+        $this->assertStringContainsString('desc', $sql);
     }
 
     public function testPriceDescendingStrategyOrdersByPriceDesc(): void
     {
-        $builder = $this->createMock(Builder::class);
-        $builder->expects($this->once())
-            ->method('orderByDesc')
-            ->with('price')
-            ->willReturnSelf();
-        $builder->expects($this->once())
-            ->method('orderByDesc')
-            ->with('created_at')
-            ->willReturnSelf();
+        $query = (new PriceDescendingSortStrategy())->apply(Product::query());
+        $sql = strtolower($query->toSql());
 
-        $result = (new PriceDescendingSortStrategy())->apply($builder);
-
-        $this->assertSame($builder, $result);
+        $this->assertStringContainsString('price', $sql);
+        $this->assertStringContainsString('created_at', $sql);
+        $this->assertStringContainsString('desc', $sql);
     }
 
     public function testNameAscendingStrategyOrdersByNameAsc(): void
     {
-        $builder = $this->createMock(Builder::class);
-        $builder->expects($this->once())
-            ->method('orderBy')
-            ->with('name', 'asc')
-            ->willReturnSelf();
-        $builder->expects($this->once())
-            ->method('orderByDesc')
-            ->with('created_at')
-            ->willReturnSelf();
+        $query = (new NameAscendingSortStrategy())->apply(Product::query());
+        $sql = strtolower($query->toSql());
 
-        $result = (new NameAscendingSortStrategy())->apply($builder);
-
-        $this->assertSame($builder, $result);
+        $this->assertStringContainsString('name', $sql);
+        $this->assertStringContainsString('asc', $sql);
+        $this->assertStringContainsString('created_at', $sql);
+        $this->assertStringContainsString('desc', $sql);
     }
 }

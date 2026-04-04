@@ -7,9 +7,9 @@ namespace App\Http\Controllers;
 use App\Facades\CheckoutFacade;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Product;
 use App\Services\Payment\PaymentProcessor;
 use App\Services\PriceCalculator;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -74,33 +74,29 @@ class CheckoutController extends Controller
             $facade = new CheckoutFacade(new PriceCalculator(), new PaymentProcessor());
             $result = $facade->processCart($cart, $discountConfig, $paymentData, $primaryType);
 
-            // Create order
-            $order = Order::create([
-                'user_id' => auth()->id() ?? 1, // Default guest user
-                'order_number' => 'ORD-' . strtoupper(uniqid()),
-                'subtotal' => $result->subtotal,
-                'discount' => $result->discountAmount,
-                'total' => $result->finalTotal,
-                'status' => 'completed',
-                'payment_method' => $validated['payment_type'],
-                'payment_credential' => $validated['payment_credential'],
-            ]);
-
-            // Add items to order
-            foreach ($cart as $item) {
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_id' => $item['product_id'],
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price'],
+            $order = DB::transaction(function () use ($cart, $result, $validated): Order {
+                $order = Order::create([
+                    'user_id' => auth()->id() ?? 1, // Default guest user
+                    'order_number' => 'ORD-' . strtoupper(uniqid()),
+                    'subtotal' => $result->subtotal,
+                    'discount' => $result->discountAmount,
+                    'total' => $result->finalTotal,
+                    'status' => 'completed',
+                    'payment_method' => $validated['payment_type'],
+                    'payment_credential' => $validated['payment_credential'],
                 ]);
 
-                // Reduce stock for physical products
-                $product = Product::find($item['product_id']);
-                if ($product->isPhysical()) {
-                    $product->decrement('stock', $item['quantity']);
+                foreach ($cart as $item) {
+                    OrderItem::create([
+                        'order_id' => $order->id,
+                        'product_id' => $item['product_id'],
+                        'quantity' => $item['quantity'],
+                        'price' => $item['price'],
+                    ]);
                 }
-            }
+
+                return $order;
+            });
 
             // Clear cart
             session()->forget('cart');
