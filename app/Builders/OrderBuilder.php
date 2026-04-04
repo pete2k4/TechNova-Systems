@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Builders;
 
+use App\Flyweights\ProductCatalogFlyweightFactory;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
@@ -17,6 +18,7 @@ use App\Models\User;
  */
 class OrderBuilder
 {
+    private ProductCatalogFlyweightFactory $flyweightFactory;
     private ?int $userId = null;
     private array $items = [];
     private float $subtotal = 0.0;
@@ -26,6 +28,11 @@ class OrderBuilder
     private ?string $paymentMethod = null;
     private ?string $paymentCredential = null;
     private ?string $orderNumber = null;
+
+    public function __construct(?ProductCatalogFlyweightFactory $flyweightFactory = null)
+    {
+        $this->flyweightFactory = $flyweightFactory ?? new ProductCatalogFlyweightFactory();
+    }
 
     /**
      * Set the user for this order.
@@ -56,6 +63,33 @@ class OrderBuilder
         ];
 
         $this->subtotal += ($price * $quantity);
+        $this->recalculateTotal();
+
+        return $this;
+    }
+
+    /**
+     * Add item using shared intrinsic product state from the flyweight pool.
+     *
+     * @param int $productId
+     * @param int $quantity
+     * @param float|null $overridePrice
+     * @return self
+     */
+    public function addItemFromCatalog(int $productId, int $quantity, ?float $overridePrice = null): self
+    {
+        $flyweight = $this->flyweightFactory->getByProductId($productId);
+        $itemData = $flyweight->createOrderItemData($quantity, $overridePrice);
+
+        $this->items[] = [
+            'product_id' => $itemData['product_id'],
+            'product_name' => $itemData['product_name'],
+            'product_type' => $itemData['product_type'],
+            'quantity' => $itemData['quantity'],
+            'price' => $itemData['price'],
+        ];
+
+        $this->subtotal += (float) $itemData['line_total'];
         $this->recalculateTotal();
 
         return $this;
@@ -275,5 +309,15 @@ class OrderBuilder
             'status' => $this->status,
             'payment_method' => $this->paymentMethod,
         ];
+    }
+
+    /**
+     * Exposed for debugging/tests to verify flyweight pooling behavior.
+     *
+     * @return int
+     */
+    public function getFlyweightPoolSize(): int
+    {
+        return $this->flyweightFactory->count();
     }
 }

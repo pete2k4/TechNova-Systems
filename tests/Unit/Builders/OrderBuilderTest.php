@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Builders;
 
 use App\Builders\OrderBuilder;
+use App\Flyweights\ProductCatalogFlyweightFactory;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\User;
@@ -26,6 +27,12 @@ class OrderBuilderTest extends TestCase
     {
         parent::setUp();
         $this->builder = new OrderBuilder();
+    }
+
+    protected function tearDown(): void
+    {
+        ProductCatalogFlyweightFactory::reset();
+        parent::tearDown();
     }
 
     /** @test */
@@ -345,5 +352,43 @@ class OrderBuilderTest extends TestCase
 
         $this->assertInstanceOf(Order::class, $order);
         $this->assertEquals('TEST-ORDER-001', $order->order_number);
+    }
+
+    /** @test */
+    public function it_adds_items_from_catalog_using_flyweights(): void
+    {
+        $user = User::factory()->create();
+
+        $category = \App\Models\Category::create([
+            'name' => 'Video Cards',
+            'slug' => 'video-cards',
+        ]);
+
+        $product = \App\Models\Product::create([
+            'category_id' => $category->id,
+            'name' => 'RTX 4080',
+            'slug' => 'rtx-4080',
+            'description' => 'High performance graphics card',
+            'price' => 999.99,
+            'type' => 'physical',
+            'sku' => 'RTX-4080-001',
+            'stock' => 10,
+        ]);
+
+        $order = $this->builder
+            ->forUser($user)
+            ->addItemFromCatalog($product->id, 2)
+            ->addItemFromCatalog($product->id, 1, 899.99)
+            ->withPaymentMethod('credit_card', 'visa_1234')
+            ->build();
+
+        $items = $this->builder->getItems();
+
+        $this->assertSame(1, $this->builder->getFlyweightPoolSize());
+        $this->assertCount(2, $items);
+        $this->assertSame('RTX 4080', $items[0]['product_name']);
+        $this->assertSame('physical', $items[0]['product_type']);
+        $this->assertEquals(2899.97, $order->subtotal);
+        $this->assertEquals(2899.97, $order->total);
     }
 }

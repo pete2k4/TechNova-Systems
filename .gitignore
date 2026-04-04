@@ -22,3 +22,10 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+guidelines.mdZone.Identifier
+NOVATECH_GUIDELINES.md
+SOLID_IMPLEMENTATION.md
+ABSTRACT_FACTORY_README.md
+app/Factories/FACTORY_USAGE_GUIDE.php
+app/Factories/README.md
+app/Builders/README.md
