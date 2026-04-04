@@ -4,14 +4,24 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Contracts\CartStoreInterface;
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\Marketplace\Cart\CartCommandInvoker;
+use App\Services\Marketplace\Cart\Commands\AddToCartCommand;
+use App\Services\Marketplace\Cart\Commands\ClearCartCommand;
+use App\Services\Marketplace\Cart\Commands\RemoveFromCartCommand;
 use App\Services\Marketplace\Sorting\ProductSortStrategyResolver;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class MarketplaceController extends Controller
 {
+    public function __construct(
+        private readonly CartStoreInterface $cartStore,
+        private readonly CartCommandInvoker $cartCommandInvoker,
+    ) {}
+
     /**
      * Display marketplace homepage with featured products.
      */
@@ -93,21 +103,12 @@ class MarketplaceController extends Controller
             return back()->with('error', 'Insufficient stock available');
         }
 
-        $cart = session()->get('cart', []);
-
-        if (isset($cart[$productId])) {
-            $cart[$productId]['quantity'] += $request->quantity;
-        } else {
-            $cart[$productId] = [
-                'product_id' => $product->id,
-                'name' => $product->name,
-                'price' => $product->price,
-                'type' => $product->type,
-                'quantity' => $request->quantity,
-            ];
-        }
-
-        session()->put('cart', $cart);
+        $command = new AddToCartCommand(
+            $this->cartStore,
+            $product,
+            (int) $request->quantity,
+        );
+        $this->cartCommandInvoker->execute($command);
 
         return redirect()->route('marketplace.cart')
             ->with('success', $product->name . ' added to cart');
@@ -118,7 +119,7 @@ class MarketplaceController extends Controller
      */
     public function cart(): View
     {
-        $cart = session()->get('cart', []);
+        $cart = $this->cartStore->getCart();
         $subtotal = 0;
 
         foreach ($cart as $item) {
@@ -136,9 +137,8 @@ class MarketplaceController extends Controller
      */
     public function removeFromCart(int $productId)
     {
-        $cart = session()->get('cart', []);
-        unset($cart[$productId]);
-        session()->put('cart', $cart);
+        $command = new RemoveFromCartCommand($this->cartStore, $productId);
+        $this->cartCommandInvoker->execute($command);
 
         return back()->with('success', 'Item removed from cart');
     }
@@ -148,7 +148,9 @@ class MarketplaceController extends Controller
      */
     public function clearCart()
     {
-        session()->forget('cart');
+        $command = new ClearCartCommand($this->cartStore);
+        $this->cartCommandInvoker->execute($command);
+
         return redirect()->route('marketplace.index')
             ->with('success', 'Cart cleared');
     }

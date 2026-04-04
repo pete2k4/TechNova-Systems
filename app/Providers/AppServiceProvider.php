@@ -3,10 +3,12 @@
 namespace App\Providers;
 
 use App\Contracts\ProductRepositoryInterface;
+use App\Contracts\CartStoreInterface;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Observers\OrderItemObserver;
 use App\Observers\OrderObserver;
+use App\Services\Marketplace\Cart\CartSessionStore;
 use Illuminate\Support\ServiceProvider;
 use App\Contracts\OrderRepositoryInterface;
 use App\Proxies\ProductRepositoryProxy;
@@ -33,6 +35,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             ProductRepositoryInterface::class,
             ProductRepositoryProxy::class
+        );
+
+        $this->app->bind(
+            CartStoreInterface::class,
+            CartSessionStore::class,
         );
         
         // Example of how to use cached repository:
