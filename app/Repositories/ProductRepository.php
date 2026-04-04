@@ -5,10 +5,11 @@ declare(strict_types=1);
 namespace App\Repositories;
 
 use App\Contracts\ProductInterface;
+use App\Contracts\ProductRepositoryInterface;
 use App\Factories\ProductFactory;
 use App\Models\Product;
 
-class ProductRepository
+class ProductRepository implements ProductRepositoryInterface
 {
     /**
      * @param Product $product

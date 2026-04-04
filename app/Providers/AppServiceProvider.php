@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Contracts\ProductRepositoryInterface;
 use Illuminate\Support\ServiceProvider;
 use App\Contracts\OrderRepositoryInterface;
+use App\Proxies\ProductRepositoryProxy;
 use App\Repositories\MySQLOrderRepository;
 
 class AppServiceProvider extends ServiceProvider
@@ -22,6 +24,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(
             OrderRepositoryInterface::class,
             MySQLOrderRepository::class
+        );
+
+        $this->app->bind(
+            ProductRepositoryInterface::class,
+            ProductRepositoryProxy::class
         );
         
         // Example of how to use cached repository:

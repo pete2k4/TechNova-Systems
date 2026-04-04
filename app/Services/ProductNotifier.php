@@ -5,11 +5,19 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Contracts\ProductInterface;
+use App\Contracts\ProductRepositoryInterface;
 use App\Factories\ProductFactory;
 use App\Models\Product;
 
 class ProductNotifier
 {
+    private ProductRepositoryInterface $productRepository;
+
+    public function __construct(?ProductRepositoryInterface $productRepository = null)
+    {
+        $this->productRepository = $productRepository ?? app(ProductRepositoryInterface::class);
+    }
+
     /**
      * @param array $productData
      * @return void
@@ -56,7 +64,11 @@ class ProductNotifier
      */
     public function notifyPriceDropByData(array $productData, float $oldPrice): void
     {
-        $product = ProductFactory::fromArray($productData);
+        $product = isset($productData['id'])
+            ? $this->productRepository->findById((int) $productData['id'])
+            : null;
+
+        $product ??= ProductFactory::fromArray($productData);
         $this->notifyPriceDrop($product, $oldPrice);
     }
 }
