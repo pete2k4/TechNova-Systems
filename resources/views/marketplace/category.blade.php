@@ -33,9 +33,9 @@
 <body>
     <div class="navbar">
         <div class="navbar-content">
-            <h2><a href="{{ route('marketplace.index') }}" style="color: #3498db; margin: 0;">🏪 NovaTech</a></h2>
+            <h2><a href="{{ route('marketplace.index', ['sort' => $currentSort]) }}" style="color: #3498db; margin: 0;">🏪 NovaTech</a></h2>
             <div>
-                <a href="{{ route('marketplace.index') }}">Home</a>
+                <a href="{{ route('marketplace.index', ['sort' => $currentSort]) }}">Home</a>
                 <a href="{{ route('marketplace.cart') }}">Cart
                     @if(count(session('cart', [])) > 0)
                         <span class="cart-badge">{{ count(session('cart', [])) }}</span>
@@ -47,11 +47,22 @@
 
     <div class="container">
         <div class="breadcrumb">
-            <a href="{{ route('marketplace.index') }}">Home</a> / <strong>{{ $category->name }}</strong>
+            <a href="{{ route('marketplace.index', ['sort' => $currentSort]) }}">Home</a> / <strong>{{ $category->name }}</strong>
         </div>
 
         <h1>{{ $category->name }}</h1>
         <p class="category-description">{{ $category->description }}</p>
+
+        <div style="display: flex; justify-content: flex-end; margin-bottom: 20px;">
+            <form method="get" action="{{ route('marketplace.category', ['slug' => $category->slug]) }}" style="display: flex; align-items: center; gap: 10px;">
+                <label for="sort" style="font-size: 14px; font-weight: 600; color: #555;">Sort by</label>
+                <select id="sort" name="sort" onchange="this.form.submit()" style="padding: 10px 12px; border: 1px solid #d6dbe0; border-radius: 6px; background: white; color: #2c3e50;">
+                    @foreach($sortOptions as $option)
+                        <option value="{{ $option['value'] }}" @selected($currentSort === $option['value'])>{{ $option['label'] }}</option>
+                    @endforeach
+                </select>
+            </form>
+        </div>
 
         <div class="products">
             @forelse($products as $product)

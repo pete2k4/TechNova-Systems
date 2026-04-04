@@ -36,9 +36,9 @@
 <body>
     <div class="navbar">
         <div class="navbar-content">
-            <h2><a href="{{ route('marketplace.index') }}" style="color: #3498db; margin: 0;">🏪 NovaTech</a></h2>
+            <h2><a href="{{ route('marketplace.index', ['sort' => $currentSort]) }}" style="color: #3498db; margin: 0;">🏪 NovaTech</a></h2>
             <div>
-                <a href="{{ route('marketplace.index') }}">Home</a>
+                <a href="{{ route('marketplace.index', ['sort' => $currentSort]) }}">Home</a>
                 <a href="{{ route('marketplace.cart') }}">Cart
                     @if(count(session('cart', [])) > 0)
                         <span class="cart-badge">{{ count(session('cart', [])) }}</span>
@@ -53,12 +53,12 @@
         
         <h3 style="margin-bottom: 15px; color: #555;">Browse by Category</h3>
         <div class="categories">
-            <a href="{{ route('marketplace.index') }}" class="category-card">
+            <a href="{{ route('marketplace.index', ['sort' => $currentSort]) }}" class="category-card">
                 <div style="font-size: 24px; margin-bottom: 8px;">🌟</div>
                 <div style="font-weight: 600;">All Products</div>
             </a>
             @foreach($categories as $category)
-                <a href="{{ route('marketplace.category', $category->slug) }}" class="category-card">
+                <a href="{{ route('marketplace.category', ['slug' => $category->slug, 'sort' => $currentSort]) }}" class="category-card">
                     <div style="font-size: 24px; margin-bottom: 8px;">
                         @if($category->id === 1) 💿 @elseif($category->id === 2) 📚 @elseif($category->id === 3) 🖥️ @elseif($category->id === 4) 🌐 @else 🔧 @endif
                     </div>
@@ -67,7 +67,18 @@
             @endforeach
         </div>
 
-        <h3 style="margin: 40px 0 20px 0; color: #555;">Featured Products</h3>
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; margin: 40px 0 20px 0;">
+            <h3 style="color: #555;">Featured Products</h3>
+            <form method="get" action="{{ route('marketplace.index') }}" style="display: flex; align-items: center; gap: 10px;">
+                <label for="sort" style="font-size: 14px; font-weight: 600; color: #555;">Sort by</label>
+                <select id="sort" name="sort" onchange="this.form.submit()" style="padding: 10px 12px; border: 1px solid #d6dbe0; border-radius: 6px; background: white; color: #2c3e50;">
+                    @foreach($sortOptions as $option)
+                        <option value="{{ $option['value'] }}" @selected($currentSort === $option['value'])>{{ $option['label'] }}</option>
+                    @endforeach
+                </select>
+            </form>
+        </div>
+
         <div class="products">
             @forelse($products as $product)
                 <div class="product-card">

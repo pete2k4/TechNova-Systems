@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\Marketplace\Sorting\ProductSortStrategyResolver;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -14,29 +15,39 @@ class MarketplaceController extends Controller
     /**
      * Display marketplace homepage with featured products.
      */
-    public function index(): View
+    public function index(Request $request, ProductSortStrategyResolver $sortStrategyResolver): View
     {
+        $sortStrategy = $sortStrategyResolver->resolve($request->query('sort'));
+
         $categories = Category::all();
-        $products = Product::where('is_active', true)
-            ->orderBy('created_at', 'desc')
-            ->paginate(12);
+        $products = $sortStrategy->apply(Product::where('is_active', true))
+            ->paginate(12)
+            ->withQueryString();
 
         return view('marketplace.index', [
             'products' => $products,
             'categories' => $categories,
+            'sortOptions' => $sortStrategyResolver->options(),
+            'currentSort' => $sortStrategy->key(),
         ]);
     }
 
     /**
      * Display products in a specific category.
      */
-    public function category(string $slug): View
+    public function category(
+        string $slug,
+        Request $request,
+        ProductSortStrategyResolver $sortStrategyResolver,
+    ): View
     {
+        $sortStrategy = $sortStrategyResolver->resolve($request->query('sort'));
+
         $category = Category::where('slug', $slug)->firstOrFail();
         
-        $products = $category->products()
-            ->where('is_active', true)
-            ->paginate(12);
+        $products = $sortStrategy->apply($category->products()->where('is_active', true))
+            ->paginate(12)
+            ->withQueryString();
 
         $categories = Category::all();
 
@@ -44,6 +55,8 @@ class MarketplaceController extends Controller
             'category' => $category,
             'products' => $products,
             'categories' => $categories,
+            'sortOptions' => $sortStrategyResolver->options(),
+            'currentSort' => $sortStrategy->key(),
         ]);
     }
 
