@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\DTOs;
 
 use App\Contracts\ProductInterface;
+use App\Contracts\ProductVisitorInterface;
 use App\Contracts\PrototypeInterface;
 use App\Contracts\ShippableInterface;
 
@@ -13,6 +14,11 @@ use App\Contracts\ShippableInterface;
  */
 class PhysicalProduct implements ProductInterface, ShippableInterface, PrototypeInterface
 {
+    public function accept(ProductVisitorInterface $visitor): mixed
+    {
+        return $visitor->visitPhysicalProduct($this);
+    }
+
     public function clonePrototype(): static
     {
         return clone $this;

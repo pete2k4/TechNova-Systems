@@ -17,4 +17,5 @@ interface ProductInterface
     public function getName(): string;
     public function getPrice(): float;
     public function getDescription(): string;
+    public function accept(ProductVisitorInterface $visitor): mixed;
 }

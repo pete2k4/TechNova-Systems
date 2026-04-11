@@ -8,14 +8,20 @@ use App\Contracts\ProductInterface;
 use App\Contracts\ProductRepositoryInterface;
 use App\Factories\ProductFactory;
 use App\Models\Product;
+use App\Visitors\ProductFulfillmentVisitor;
+use App\Visitors\ProductMarketingCopyVisitor;
 
 class ProductNotifier
 {
     private ProductRepositoryInterface $productRepository;
+    private ProductFulfillmentVisitor $fulfillmentVisitor;
+    private ProductMarketingCopyVisitor $marketingCopyVisitor;
 
     public function __construct(?ProductRepositoryInterface $productRepository = null)
     {
         $this->productRepository = $productRepository ?? app(ProductRepositoryInterface::class);
+        $this->fulfillmentVisitor = new ProductFulfillmentVisitor();
+        $this->marketingCopyVisitor = new ProductMarketingCopyVisitor();
     }
 
     /**
@@ -25,10 +31,11 @@ class ProductNotifier
     public function notifyNewProduct(array $productData): void
     {
         $product = ProductFactory::fromArray($productData);
+        $payload = $this->buildNotificationPayload($product);
         
         // Notification logic would go here
         // Get subscribers and send notifications
-        // Mail::to($subscribers)->send(new NewProductMail($product));
+        // Mail::to($subscribers)->send(new NewProductMail($product, $payload));
     }
 
     /**
@@ -39,8 +46,9 @@ class ProductNotifier
     public function notifyNewProductByType(string $type, array $data = []): void
     {
         $product = ProductFactory::create($type, $data);
+        $payload = $this->buildNotificationPayload($product);
         
-        // Mail::to($subscribers)->send(new NewProductMail($product));
+        // Mail::to($subscribers)->send(new NewProductMail($product, $payload));
     }
 
     /**
@@ -52,9 +60,10 @@ class ProductNotifier
     {
         $newPrice = $product->getPrice();
         $discount = $oldPrice - $newPrice;
+        $payload = $this->buildNotificationPayload($product);
         
         // Notification logic would go here with discount information
-        // Mail::to($subscribers)->send(new PriceDropMail($product, $oldPrice, $newPrice, $discount));
+        // Mail::to($subscribers)->send(new PriceDropMail($product, $oldPrice, $newPrice, $discount, $payload));
     }
 
     /**
@@ -70,5 +79,16 @@ class ProductNotifier
 
         $product ??= ProductFactory::fromArray($productData);
         $this->notifyPriceDrop($product, $oldPrice);
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function buildNotificationPayload(ProductInterface $product): array
+    {
+        return [
+            'marketing_copy' => $product->accept($this->marketingCopyVisitor),
+            'fulfillment' => $product->accept($this->fulfillmentVisitor),
+        ];
     }
 }

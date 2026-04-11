@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace Tests\Unit\Prototypes;
 
 use App\Contracts\ProductInterface;
+use App\Contracts\ProductVisitorInterface;
 use App\Contracts\PrototypeInterface;
+use App\DTOs\DigitalProduct;
 use App\DTOs\DigitalProduct;
 use App\DTOs\PhysicalProduct;
 use App\Prototypes\ProductPrototypeRegistry;
@@ -188,6 +190,11 @@ class ProductPrototypeRegistryTest extends TestCase
         $registry = ProductPrototypeRegistry::getInstance();
 
         $customPrototype = new class implements ProductInterface, PrototypeInterface {
+            public function accept(ProductVisitorInterface $visitor): mixed
+            {
+                return $visitor->visitDigitalProduct(new DigitalProduct());
+            }
+
             public function getName(): string
             {
                 return 'Custom Product';

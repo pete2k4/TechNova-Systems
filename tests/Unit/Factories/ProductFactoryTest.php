@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Unit\Factories;
 
 use App\Contracts\ProductInterface;
+use App\Contracts\ProductVisitorInterface;
 use App\Contracts\PrototypeInterface;
 use App\DTOs\DigitalProduct;
 use App\DTOs\PhysicalProduct;
@@ -142,6 +143,11 @@ class ProductFactoryTest extends TestCase
     public function testCustomPrototypeCanBeRegistered(): void
     {
         $prototype = new class implements ProductInterface, PrototypeInterface {
+            public function accept(ProductVisitorInterface $visitor): mixed
+            {
+                return $visitor->visitDigitalProduct(new DigitalProduct());
+            }
+
             public function getName(): string
             {
                 return 'Prototype Subscription';

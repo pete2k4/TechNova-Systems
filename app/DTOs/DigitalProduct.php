@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\DTOs;
 
 use App\Contracts\ProductInterface;
+use App\Contracts\ProductVisitorInterface;
 use App\Contracts\PrototypeInterface;
 use App\Contracts\DownloadableInterface;
 
@@ -13,6 +14,11 @@ use App\Contracts\DownloadableInterface;
  */
 class DigitalProduct implements ProductInterface, DownloadableInterface, PrototypeInterface
 {
+    public function accept(ProductVisitorInterface $visitor): mixed
+    {
+        return $visitor->visitDigitalProduct($this);
+    }
+
     public function clonePrototype(): static
     {
         return clone $this;

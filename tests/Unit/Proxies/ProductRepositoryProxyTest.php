@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Proxies;
 
 use App\Contracts\ProductInterface;
+use App\Contracts\ProductVisitorInterface;
+use App\DTOs\DigitalProduct;
 use App\Models\Product;
 use App\Proxies\ProductRepositoryProxy;
 use App\Repositories\ProductRepository;
@@ -19,6 +21,11 @@ class ProductRepositoryProxyTest extends TestCase
                 private readonly int $id,
                 private readonly string $name,
             ) {
+            }
+
+            public function accept(ProductVisitorInterface $visitor): mixed
+            {
+                return $visitor->visitDigitalProduct(new DigitalProduct());
             }
 
             public function getName(): string
