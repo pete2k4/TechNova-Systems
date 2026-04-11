@@ -4,13 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Facades\CheckoutFacade;
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Services\Checkout\Validation\CheckoutValidationChain;
-use App\Services\Checkout\Validation\CheckoutValidationContext;
-use App\Services\Payment\PaymentProcessor;
-use App\Services\PriceCalculator;
+use App\Services\Checkout\Mediator\CheckoutProcessMediator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -42,7 +38,7 @@ class CheckoutController extends Controller
     /**
      * Process checkout and create order.
      */
-    public function process(Request $request): View
+    public function process(Request $request, CheckoutProcessMediator $checkoutMediator): View
     {
         $cart = session()->get('cart', []);
 
@@ -64,22 +60,7 @@ class CheckoutController extends Controller
                 'credential' => $validated['payment_credential'],
             ];
 
-            // Determine product types in cart
-            $productTypes = array_unique(array_map(fn($item) => $item['type'], $cart));
-            $primaryType = in_array('physical', $productTypes) ? 'physical' : 'digital';
-
-            $validationContext = new CheckoutValidationContext(
-                cart: $cart,
-                discountConfig: $discountConfig,
-                paymentData: $paymentData,
-                productType: $primaryType,
-            );
-
-            (new CheckoutValidationChain())->validate($validationContext);
-
-            // Facade hides PriceCalculator + PaymentProcessor + CommerceFactorySelector
-            $facade = new CheckoutFacade(new PriceCalculator(), new PaymentProcessor());
-            $result = $facade->processCart($cart, $discountConfig, $paymentData, $primaryType);
+            $result = $checkoutMediator->mediateCheckout($cart, $discountConfig, $paymentData);
 
             $order = DB::transaction(function () use ($cart, $result, $validated): Order {
                 $order = Order::create([
