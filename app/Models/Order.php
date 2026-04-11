@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\States\Order\OrderStateFactory;
+use App\States\Order\OrderStateInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -36,5 +38,32 @@ class Order extends Model
     public function isFailed(): bool
     {
         return $this->status === 'failed';
+    }
+
+    public function getState(): OrderStateInterface
+    {
+        return OrderStateFactory::fromStatus($this->status);
+    }
+
+    public function transitionToCompleted(): self
+    {
+        return $this->applyState($this->getState()->complete($this));
+    }
+
+    public function transitionToFailed(): self
+    {
+        return $this->applyState($this->getState()->fail($this));
+    }
+
+    public function transitionToRefunded(): self
+    {
+        return $this->applyState($this->getState()->refund($this));
+    }
+
+    private function applyState(OrderStateInterface $state): self
+    {
+        $this->status = $state->getName();
+
+        return $this;
     }
 }

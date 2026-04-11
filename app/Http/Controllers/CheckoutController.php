@@ -7,6 +7,8 @@ namespace App\Http\Controllers;
 use App\Facades\CheckoutFacade;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Services\Checkout\Validation\CheckoutValidationChain;
+use App\Services\Checkout\Validation\CheckoutValidationContext;
 use App\Services\Payment\PaymentProcessor;
 use App\Services\PriceCalculator;
 use Illuminate\Support\Facades\DB;
@@ -44,10 +46,6 @@ class CheckoutController extends Controller
     {
         $cart = session()->get('cart', []);
 
-        if (empty($cart)) {
-            abort(404, 'Cart is empty');
-        }
-
         $validated = $request->validate([
             'discount_type' => 'required|in:percentage,fixed',
             'discount_value' => 'required|numeric|min:0',
@@ -70,6 +68,15 @@ class CheckoutController extends Controller
             $productTypes = array_unique(array_map(fn($item) => $item['type'], $cart));
             $primaryType = in_array('physical', $productTypes) ? 'physical' : 'digital';
 
+            $validationContext = new CheckoutValidationContext(
+                cart: $cart,
+                discountConfig: $discountConfig,
+                paymentData: $paymentData,
+                productType: $primaryType,
+            );
+
+            (new CheckoutValidationChain())->validate($validationContext);
+
             // Facade hides PriceCalculator + PaymentProcessor + CommerceFactorySelector
             $facade = new CheckoutFacade(new PriceCalculator(), new PaymentProcessor());
             $result = $facade->processCart($cart, $discountConfig, $paymentData, $primaryType);
@@ -81,7 +88,7 @@ class CheckoutController extends Controller
                     'subtotal' => $result->subtotal,
                     'discount' => $result->discountAmount,
                     'total' => $result->finalTotal,
-                    'status' => 'completed',
+                    'status' => 'pending',
                     'payment_method' => $validated['payment_type'],
                     'payment_credential' => $validated['payment_credential'],
                 ]);
@@ -93,6 +100,12 @@ class CheckoutController extends Controller
                         'quantity' => $item['quantity'],
                         'price' => $item['price'],
                     ]);
+                }
+
+                if ($result->paymentSuccess) {
+                    $order->transitionToCompleted()->save();
+                } else {
+                    $order->transitionToFailed()->save();
                 }
 
                 return $order;
