@@ -4,10 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Models\Order;
-use App\Models\OrderItem;
-use App\Models\Product;
-use App\Services\CheckoutService;
+use App\Services\Checkout\CheckoutFacade;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -38,7 +35,7 @@ class CheckoutController extends Controller
     /**
      * Process checkout and create order.
      */
-    public function process(Request $request): View
+    public function process(Request $request, CheckoutFacade $checkoutFacade): View
     {
         $cart = session()->get('cart', []);
 
@@ -54,82 +51,22 @@ class CheckoutController extends Controller
         ]);
 
         try {
-            $cartTotal = 0;
-            foreach ($cart as $item) {
-                $cartTotal += $item['price'] * $item['quantity'];
-            }
-
-            $discountConfig = [
-                'type' => $validated['discount_type'],
-                'value' => (float) $validated['discount_value'],
-            ];
-
-            $paymentData = [
-                'type' => $validated['payment_type'],
-                'credential' => $validated['payment_credential'],
-            ];
-
-            // Determine product types in cart
-            $productTypes = array_unique(array_map(fn($item) => $item['type'], $cart));
-            $primaryType = in_array('physical', $productTypes) ? 'physical' : 'digital';
-
-            $checkout = new CheckoutService($primaryType);
-            $factory = $checkout->getFactory();
-
-            $discountStrategy = $factory->createDiscount(
-                $discountConfig['type'],
-                $discountConfig['value']
+            $context = $checkoutFacade->process(
+                $cart,
+                $validated,
+                (int) (auth()->id() ?? 1)
             );
-            $discountAmount = min($discountStrategy->calculate($cartTotal), $cartTotal);
-            $finalTotal = max(0, $cartTotal - $discountAmount);
-
-            $paymentStrategy = $factory->createPaymentMethod(
-                $paymentData['type'],
-                $paymentData['credential']
-            );
-
-            if (!$paymentStrategy->process($finalTotal)) {
-                abort(404, 'Checkout failed: payment strategy rejected the transaction.');
-            }
-
-            // Create order
-            $order = Order::create([
-                'user_id' => auth()->id() ?? 1, // Default guest user
-                'order_number' => 'ORD-' . strtoupper(uniqid()),
-                'subtotal' => $cartTotal,
-                'discount' => $discountAmount,
-                'total' => $finalTotal,
-                'status' => 'completed',
-                'payment_method' => $validated['payment_type'],
-                'payment_credential' => $validated['payment_credential'],
-            ]);
-
-            // Add items to order
-            foreach ($cart as $item) {
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_id' => $item['product_id'],
-                    'quantity' => $item['quantity'],
-                    'price' => $item['price'],
-                ]);
-
-                // Reduce stock for physical products
-                $product = Product::find($item['product_id']);
-                if ($product->isPhysical()) {
-                    $product->decrement('stock', $item['quantity']);
-                }
-            }
 
             // Clear cart
             session()->forget('cart');
 
             return view('marketplace.order-confirmation', [
-                'order' => $order,
-                'factoryName' => $factory->getFamilyName(),
-                'factoryClass' => class_basename($factory::class),
-                'discount' => $discountConfig,
-                'discountStrategy' => class_basename($discountStrategy::class),
-                'paymentStrategy' => $paymentStrategy->getName(),
+                'order' => $context->order,
+                'factoryName' => $context->factoryName,
+                'factoryClass' => $context->factoryClass,
+                'discount' => $context->discountConfig,
+                'discountStrategy' => $context->discountStrategyClass,
+                'paymentStrategy' => $context->paymentStrategyName,
             ]);
         } catch (\Exception $e) {
             abort(404, 'Checkout failed: ' . $e->getMessage());
