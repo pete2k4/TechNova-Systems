@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Checkout;
 
+use App\Domain\Cart\CartBundleComposite;
 use App\Services\Checkout\Pipeline\ValidateCartHandler;
 use App\Services\Checkout\Pipeline\ValidateCheckoutModeHandler;
 use App\Services\Checkout\Pipeline\ValidateDiscountHandler;
@@ -19,28 +20,23 @@ class CheckoutFacade
      */
     public function process(array $cart, array $validated, int $userId): CheckoutContext
     {
-        $this->validateCheckoutRequest($cart, $validated);
+        $cartComposite = CartBundleComposite::fromSessionCart($cart, 'Checkout cart');
+        $normalizedCart = $cartComposite->toCartPayload();
 
-        $primaryType = $this->resolvePrimaryType($cart);
+        $this->validateCheckoutRequest($normalizedCart, $validated);
+
+        $primaryType = $this->resolvePrimaryType($cartComposite);
 
         $flow = $primaryType === 'physical'
             ? new PhysicalCheckoutFlow()
             : new DigitalCheckoutFlow();
 
-        return $flow->execute($cart, $validated, $userId);
+        return $flow->execute($normalizedCart, $validated, $userId);
     }
 
-    /**
-     * @param array<int,array{type:string}> $cart
-     */
-    private function resolvePrimaryType(array $cart): string
+    private function resolvePrimaryType(CartBundleComposite $cart): string
     {
-        $productTypes = array_unique(array_map(
-            static fn(array $item): string => $item['type'],
-            $cart
-        ));
-
-        return in_array('physical', $productTypes, true) ? 'physical' : 'digital';
+        return $cart->hasPhysicalProducts() ? 'physical' : 'digital';
     }
 
     /**

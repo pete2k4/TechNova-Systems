@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Domain\Cart\CartBundleComposite;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
@@ -106,15 +107,11 @@ class MarketplaceController extends Controller
     public function cart(): View
     {
         $cart = session()->get('cart', []);
-        $subtotal = 0;
-
-        foreach ($cart as $item) {
-            $subtotal += $item['price'] * $item['quantity'];
-        }
+        $cartComposite = CartBundleComposite::fromSessionCart($cart, 'Session cart');
 
         return view('marketplace.cart', [
             'cart' => $cart,
-            'subtotal' => $subtotal,
+            'subtotal' => $cartComposite->getTotal(),
         ]);
     }
 

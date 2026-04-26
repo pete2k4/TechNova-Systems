@@ -177,4 +177,45 @@ class CheckoutFacadeTest extends TestCase
         $this->assertSame('Digital Product Commerce', $context->factoryName);
         $this->assertSame(75.0, $context->finalTotal);
     }
+
+    public function test_process_accepts_session_cart_shape_with_associative_keys(): void
+    {
+        $user = User::factory()->create();
+        $category = $this->createCategory();
+
+        $physicalProduct = Product::query()->create([
+            'category_id' => $category->id,
+            'name' => 'External SSD',
+            'slug' => 'external-ssd',
+            'description' => 'Portable SSD storage',
+            'price' => 200,
+            'type' => 'physical',
+            'sku' => 'SKU-SSD-001',
+            'stock' => 5,
+            'is_active' => true,
+        ]);
+
+        $cart = [
+            $physicalProduct->id => [
+                'product_id' => $physicalProduct->id,
+                'name' => 'External SSD',
+                'price' => 200,
+                'quantity' => 1,
+                'type' => 'physical',
+            ],
+        ];
+
+        $validated = [
+            'discount_type' => 'fixed',
+            'discount_value' => 20,
+            'payment_type' => 'paypal',
+            'payment_credential' => 'student@example.com',
+        ];
+
+        $context = app(CheckoutFacade::class)->process($cart, $validated, $user->id);
+
+        $this->assertSame(200.0, $context->cartTotal);
+        $this->assertSame(180.0, $context->finalTotal);
+        $this->assertSame('physical', $context->primaryProductType);
+    }
 }

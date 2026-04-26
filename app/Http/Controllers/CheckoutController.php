@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Domain\Cart\CartBundleComposite;
 use App\Services\Checkout\CheckoutFacade;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -16,19 +17,16 @@ class CheckoutController extends Controller
     public function showCheckout(): View
     {
         $cart = session()->get('cart', []);
+        $cartComposite = CartBundleComposite::fromSessionCart($cart, 'Session cart');
+        $normalizedCart = $cartComposite->toCartPayload();
 
-        if (empty($cart)) {
+        if ($normalizedCart === []) {
             abort(404, 'Cart is empty');
         }
 
-        $subtotal = 0;
-        foreach ($cart as $item) {
-            $subtotal += $item['price'] * $item['quantity'];
-        }
-
         return view('marketplace.checkout', [
-            'cart' => $cart,
-            'subtotal' => $subtotal,
+            'cart' => $normalizedCart,
+            'subtotal' => $cartComposite->getTotal(),
         ]);
     }
 
@@ -38,8 +36,10 @@ class CheckoutController extends Controller
     public function process(Request $request, CheckoutFacade $checkoutFacade): View
     {
         $cart = session()->get('cart', []);
+        $cartComposite = CartBundleComposite::fromSessionCart($cart, 'Session cart');
+        $normalizedCart = $cartComposite->toCartPayload();
 
-        if (empty($cart)) {
+        if ($normalizedCart === []) {
             abort(404, 'Cart is empty');
         }
 
@@ -52,7 +52,7 @@ class CheckoutController extends Controller
 
         try {
             $context = $checkoutFacade->process(
-                $cart,
+                $normalizedCart,
                 $validated,
                 (int) (auth()->id() ?? 1)
             );

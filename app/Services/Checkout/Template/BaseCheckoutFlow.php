@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Checkout\Template;
 
+use App\Domain\Cart\CartBundleComposite;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Services\Checkout\CheckoutContext;
@@ -18,7 +19,14 @@ abstract class BaseCheckoutFlow
      */
     final public function execute(array $cart, array $validated, int $userId): CheckoutContext
     {
-        $cartTotal = $this->calculateCartTotal($cart);
+        $cartComposite = CartBundleComposite::fromSessionCart($cart, 'Checkout cart');
+        $normalizedCart = $cartComposite->toCartPayload();
+
+        if ($normalizedCart === []) {
+            throw new RuntimeException('Checkout failed: cart is empty.');
+        }
+
+        $cartTotal = $cartComposite->getTotal();
 
         $discountConfig = [
             'type' => $validated['discount_type'],
@@ -56,12 +64,12 @@ abstract class BaseCheckoutFlow
             'payment_credential' => $validated['payment_credential'],
         ]);
 
-        foreach ($cart as $item) {
+        foreach ($cartComposite as $item) {
             OrderItem::create([
                 'order_id' => $order->id,
-                'product_id' => $item['product_id'],
-                'quantity' => $item['quantity'],
-                'price' => $item['price'],
+                'product_id' => $item->getProductId(),
+                'quantity' => $item->getQuantity(),
+                'price' => $item->getPrice(),
             ]);
         }
 
@@ -86,20 +94,6 @@ abstract class BaseCheckoutFlow
             finalTotal: $finalTotal,
             primaryProductType: $this->productType(),
         );
-    }
-
-    /**
-     * @param array<int,array{price:float|int,quantity:int}> $cart
-     */
-    protected function calculateCartTotal(array $cart): float
-    {
-        $total = 0.0;
-
-        foreach ($cart as $item) {
-            $total += (float) $item['price'] * (int) $item['quantity'];
-        }
-
-        return $total;
     }
 
     abstract protected function productType(): string;
