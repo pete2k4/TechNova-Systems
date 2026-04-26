@@ -128,6 +128,10 @@
 
                 <h3 class="section-title">What's Next?</h3>
                 <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; line-height: 1.6; color: #555; margin-bottom: 30px;">
+                    @if(!empty($paymentPlaceholderPath ?? null))
+                        <p>💳 <strong>Payment redirect simulation is available:</strong> <a href="{{ $paymentPlaceholderPath }}">Still working on payment integration</a></p>
+                    @endif
+
                     @php
                         $hasPhysical = $order->items->some(fn($item) => $item->product->isPhysical());
                         $hasDigital = $order->items->some(fn($item) => $item->product->isDigital());

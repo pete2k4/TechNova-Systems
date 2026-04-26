@@ -67,6 +67,7 @@ class CheckoutController extends Controller
                 'discount' => $context->discountConfig,
                 'discountStrategy' => $context->discountStrategyClass,
                 'paymentStrategy' => $context->paymentStrategyName,
+                'paymentPlaceholderPath' => $context->paymentPlaceholderPath,
             ]);
         } catch (\Exception $e) {
             abort(404, 'Checkout failed: ' . $e->getMessage());

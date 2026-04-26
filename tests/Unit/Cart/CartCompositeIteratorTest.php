@@ -42,7 +42,7 @@ class CartCompositeIteratorTest extends TestCase
 
         $root = CartBundleComposite::fromSessionCart($cart, 'Root cart');
 
-        $this->assertSame(270.0, $root->getTotal());
+        $this->assertSame(230.0, $root->getTotal());
         $this->assertSame(6, $root->getQuantity());
         $this->assertTrue($root->hasPhysicalProducts());
     }

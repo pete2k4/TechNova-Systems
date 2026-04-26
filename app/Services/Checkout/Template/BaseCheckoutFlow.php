@@ -4,10 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Checkout\Template;
 
-use App\Domain\Cart\CartBundleComposite;
-use App\Models\Order;
-use App\Models\OrderItem;
 use App\Services\Checkout\CheckoutContext;
+use App\Services\Checkout\CheckoutMediator;
 use App\Services\CheckoutService;
 use RuntimeException;
 
@@ -19,7 +17,8 @@ abstract class BaseCheckoutFlow
      */
     final public function execute(array $cart, array $validated, int $userId): CheckoutContext
     {
-        $cartComposite = CartBundleComposite::fromSessionCart($cart, 'Checkout cart');
+        $mediator = new CheckoutMediator();
+        $cartComposite = $mediator->prepareCart($cart);
         $normalizedCart = $cartComposite->toCartPayload();
 
         if ($normalizedCart === []) {
@@ -53,27 +52,18 @@ abstract class BaseCheckoutFlow
             $paymentData['credential']
         );
 
-        $order = Order::create([
-            'user_id' => $userId,
-            'order_number' => 'ORD-' . strtoupper(uniqid()),
-            'subtotal' => $cartTotal,
-            'discount' => $discountAmount,
-            'total' => $finalTotal,
-            'status' => Order::STATUS_CHECKOUT_STARTED,
-            'payment_method' => $validated['payment_type'],
-            'payment_credential' => $validated['payment_credential'],
-        ]);
+        $mediator->assertInventory($cartComposite);
 
-        foreach ($cartComposite as $item) {
-            OrderItem::create([
-                'order_id' => $order->id,
-                'product_id' => $item->getProductId(),
-                'quantity' => $item->getQuantity(),
-                'price' => $item->getPrice(),
-            ]);
-        }
-
-        $order->markPendingPaymentPage();
+        $order = $mediator->createOrder(
+            userId: $userId,
+            cart: $cartComposite,
+            cartTotal: $cartTotal,
+            discountAmount: $discountAmount,
+            finalTotal: $finalTotal,
+            paymentMethod: $validated['payment_type'],
+            paymentCredential: $validated['payment_credential'],
+        );
+        $paymentPlaceholderPath = $mediator->paymentPlaceholderPath($order);
 
         if (!$paymentStrategy->process($finalTotal)) {
             $order->markCanceled();
@@ -93,6 +83,7 @@ abstract class BaseCheckoutFlow
             discountAmount: $discountAmount,
             finalTotal: $finalTotal,
             primaryProductType: $this->productType(),
+            paymentPlaceholderPath: $paymentPlaceholderPath,
         );
     }
 

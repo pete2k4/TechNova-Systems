@@ -22,3 +22,6 @@ Route::prefix('marketplace')->group(function () {
 
 Route::get('/checkout', [CheckoutController::class, 'showCheckout'])->name('checkout.show-checkout');
 Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
+Route::view('/checkout/payment-placeholder/{orderId}', 'checkout.payment-placeholder')
+    ->whereNumber('orderId')
+    ->name('checkout.payment-placeholder');

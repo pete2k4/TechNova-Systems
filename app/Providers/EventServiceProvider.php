@@ -22,4 +22,9 @@ class EventServiceProvider extends ServiceProvider
             TrackOrderAnalytics::class,
         ],
     ];
+
+    public function shouldDiscoverEvents(): bool
+    {
+        return false;
+    }
 }

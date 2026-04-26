@@ -22,5 +22,6 @@ class CheckoutContext
         public readonly float $discountAmount,
         public readonly float $finalTotal,
         public readonly string $primaryProductType,
+        public readonly string $paymentPlaceholderPath,
     ) {}
 }
