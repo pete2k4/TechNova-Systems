@@ -10,21 +10,27 @@ use App\Models\Product;
 use App\Models\User;
 use App\Services\Checkout\CheckoutFacade;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use RuntimeException;
 use Tests\TestCase;
 
 class CheckoutFacadeTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_process_orchestrates_cart_to_order_flow(): void
+    private function createCategory(): Category
     {
-        $user = User::factory()->create();
-        $category = Category::query()->create([
+        return Category::query()->create([
             'name' => 'Accessories',
             'slug' => 'accessories',
             'description' => 'Computer accessories',
             'type' => 'mixed',
         ]);
+    }
+
+    public function test_process_orchestrates_cart_to_order_flow(): void
+    {
+        $user = User::factory()->create();
+        $category = $this->createCategory();
 
         $physicalProduct = Product::query()->create([
             'category_id' => $category->id,
@@ -91,5 +97,84 @@ class CheckoutFacadeTest extends TestCase
 
         $physicalProduct->refresh();
         $this->assertSame(8, $physicalProduct->stock);
+    }
+
+    public function test_process_fails_when_stock_is_insufficient(): void
+    {
+        $user = User::factory()->create();
+        $category = $this->createCategory();
+
+        $physicalProduct = Product::query()->create([
+            'category_id' => $category->id,
+            'name' => 'Mechanical Keyboard',
+            'slug' => 'mechanical-keyboard',
+            'description' => 'Compact mechanical keyboard',
+            'price' => 120,
+            'type' => 'physical',
+            'sku' => 'SKU-KB-001',
+            'stock' => 1,
+            'is_active' => true,
+        ]);
+
+        $cart = [
+            [
+                'product_id' => $physicalProduct->id,
+                'price' => 120,
+                'quantity' => 2,
+                'type' => 'physical',
+            ],
+        ];
+
+        $validated = [
+            'discount_type' => 'fixed',
+            'discount_value' => 10,
+            'payment_type' => 'paypal',
+            'payment_credential' => 'student@example.com',
+        ];
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('Insufficient stock for product');
+
+        app(CheckoutFacade::class)->process($cart, $validated, $user->id);
+    }
+
+    public function test_process_uses_digital_template_flow_for_digital_cart(): void
+    {
+        $user = User::factory()->create();
+        $category = $this->createCategory();
+
+        $digitalProduct = Product::query()->create([
+            'category_id' => $category->id,
+            'name' => 'Cloud Backup License',
+            'slug' => 'cloud-backup-license',
+            'description' => 'One year cloud backup license',
+            'price' => 80,
+            'type' => 'digital',
+            'sku' => 'SKU-CLOUD-001',
+            'stock' => null,
+            'is_active' => true,
+        ]);
+
+        $cart = [
+            [
+                'product_id' => $digitalProduct->id,
+                'price' => 80,
+                'quantity' => 1,
+                'type' => 'digital',
+            ],
+        ];
+
+        $validated = [
+            'discount_type' => 'fixed',
+            'discount_value' => 5,
+            'payment_type' => 'paypal',
+            'payment_credential' => 'student@example.com',
+        ];
+
+        $context = app(CheckoutFacade::class)->process($cart, $validated, $user->id);
+
+        $this->assertSame('digital', $context->primaryProductType);
+        $this->assertSame('Digital Product Commerce', $context->factoryName);
+        $this->assertSame(75.0, $context->finalTotal);
     }
 }
