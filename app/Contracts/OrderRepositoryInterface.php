@@ -22,4 +22,5 @@ interface OrderRepositoryInterface
     public function save(Order $order): bool;
     public function findById(int $id): ?Order;
     public function findByUserId(int $userId): array;
+    public function delete(int $id): bool;
 }

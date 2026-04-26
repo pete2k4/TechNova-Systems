@@ -6,10 +6,11 @@ namespace App\Services;
 
 use App\Contracts\OrderRepositoryInterface;
 use App\Factories\OrderRepositoryFactory;
+use App\Models\Order;
 
 class OrderService
 {
-    private readonly OrderRepositoryInterface $repository;
+    private OrderRepositoryInterface $repository;
 
     /**
      * Uses factory to create repository based on config.
@@ -25,16 +26,9 @@ class OrderService
      */
     public function createOrder(array $orderData): bool
     {
-        // Business logic...
-        // Validate order
-        // Apply discounts
-        // Check inventory
-        
-        // Save using factory-created repository (could be MySQL, Cache, etc.)
-        // In a real implementation, need to construct an Order object from $orderData
-        // and call $this->repository->save($order)
-        
-        return $this->repository->save((object) $orderData);
+        $order = new Order($orderData);
+
+        return $this->repository->save($order);
     }
 
     /**

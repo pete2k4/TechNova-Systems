@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
-use App\Factories\CommerceFactorySelector;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -60,12 +59,6 @@ class CheckoutController extends Controller
                 $cartTotal += $item['price'] * $item['quantity'];
             }
 
-            $discountAmount = $validated['discount_type'] === 'percentage'
-                ? $cartTotal * ($validated['discount_value'] / 100)
-                : $validated['discount_value'];
-
-            $finalTotal = max(0, $cartTotal - $discountAmount);
-
             $discountConfig = [
                 'type' => $validated['discount_type'],
                 'value' => (float) $validated['discount_value'],
@@ -82,6 +75,22 @@ class CheckoutController extends Controller
 
             $checkout = new CheckoutService($primaryType);
             $factory = $checkout->getFactory();
+
+            $discountStrategy = $factory->createDiscount(
+                $discountConfig['type'],
+                $discountConfig['value']
+            );
+            $discountAmount = min($discountStrategy->calculate($cartTotal), $cartTotal);
+            $finalTotal = max(0, $cartTotal - $discountAmount);
+
+            $paymentStrategy = $factory->createPaymentMethod(
+                $paymentData['type'],
+                $paymentData['credential']
+            );
+
+            if (!$paymentStrategy->process($finalTotal)) {
+                abort(404, 'Checkout failed: payment strategy rejected the transaction.');
+            }
 
             // Create order
             $order = Order::create([
@@ -119,6 +128,8 @@ class CheckoutController extends Controller
                 'factoryName' => $factory->getFamilyName(),
                 'factoryClass' => class_basename($factory::class),
                 'discount' => $discountConfig,
+                'discountStrategy' => class_basename($discountStrategy::class),
+                'paymentStrategy' => $paymentStrategy->getName(),
             ]);
         } catch (\Exception $e) {
             abort(404, 'Checkout failed: ' . $e->getMessage());

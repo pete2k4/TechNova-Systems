@@ -4,30 +4,28 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Contracts\OrderRepositoryInterface;
+use App\Models\Order;
+use App\Repositories\Decorators\OrderRepositoryDecorator;
+use Illuminate\Support\Facades\Cache;
 
-class CachedOrderRepository implements OrderRepositoryInterface
+class CachedOrderRepository extends OrderRepositoryDecorator
 {
     private const CACHE_TTL = 3600;
 
-    /**
-     * @param OrderRepositoryInterface $baseRepository
-     */
-    public function __construct(
-        private readonly OrderRepositoryInterface $baseRepository
-    ) {}
+    private const CACHE_KEY_ORDER = 'order.%d';
+    private const CACHE_KEY_USER_ORDERS = 'orders.user.%d';
 
     /**
-     * @param object $order
+     * @param Order $order
      * @return bool
      */
-    public function save($order): bool
+    public function save(Order $order): bool
     {
-        $result = $this->baseRepository->save($order);
+        $result = parent::save($order);
         
-        // Cache the saved order
         if ($result && isset($order->id)) {
-            // Cache::put("order.{$order->id}", $order, self::CACHE_TTL);
+            Cache::put($this->orderCacheKey((int) $order->id), $order, self::CACHE_TTL);
+            Cache::forget($this->userOrdersCacheKey((int) $order->user_id));
         }
         
         return $result;
@@ -35,23 +33,15 @@ class CachedOrderRepository implements OrderRepositoryInterface
 
     /**
      * @param int $id
-     * @return object|null
+     * @return Order|null
      */
-    public function findById(int $id): ?object
+    public function findById(int $id): ?Order
     {
-        // Try cache first
-        // if ($cached = Cache::get("order.{$id}")) {
-        //     return $cached;
-        // }
-        
-        $order = $this->baseRepository->findById($id);
-        
-        // Cache the result
-        // if ($order) {
-        //     Cache::put("order.{$id}", $order, self::CACHE_TTL);
-        // }
-        
-        return $order;
+        return Cache::remember(
+            $this->orderCacheKey($id),
+            self::CACHE_TTL,
+            fn() => parent::findById($id)
+        );
     }
 
     /**
@@ -60,9 +50,11 @@ class CachedOrderRepository implements OrderRepositoryInterface
      */
     public function findByUserId(int $userId): array
     {
-        // For collections, caching is more complex, so we delegate directly
-        // In production, you might cache the list with a time limit
-        return $this->baseRepository->findByUserId($userId);
+        return Cache::remember(
+            $this->userOrdersCacheKey($userId),
+            self::CACHE_TTL,
+            fn() => parent::findByUserId($userId)
+        );
     }
 
     /**
@@ -71,12 +63,15 @@ class CachedOrderRepository implements OrderRepositoryInterface
      */
     public function delete(int $id): bool
     {
-        $result = $this->baseRepository->delete($id);
-        
-        // Invalidate cache
-        // if ($result) {
-        //     Cache::forget("order.{$id}");
-        // }
+        $order = parent::findById($id);
+        $result = parent::delete($id);
+
+        if ($result) {
+            Cache::forget($this->orderCacheKey($id));
+            if ($order !== null) {
+                Cache::forget($this->userOrdersCacheKey((int) $order->user_id));
+            }
+        }
         
         return $result;
     }
@@ -86,14 +81,16 @@ class CachedOrderRepository implements OrderRepositoryInterface
      */
     public function clearCache(): void
     {
-        // Cache::flush(); // or more targeted cache clearing
+        // Intentionally targeted invalidation only; global cache flush is avoided.
     }
 
-    /**
-     * @return OrderRepositoryInterface
-     */
-    public function getBaseRepository(): OrderRepositoryInterface
+    private function orderCacheKey(int $id): string
     {
-        return $this->baseRepository;
+        return sprintf(self::CACHE_KEY_ORDER, $id);
+    }
+
+    private function userOrdersCacheKey(int $userId): string
+    {
+        return sprintf(self::CACHE_KEY_USER_ORDERS, $userId);
     }
 }
