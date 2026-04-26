@@ -90,7 +90,7 @@ class CheckoutFacadeTest extends TestCase
             'id' => $context->order->id,
             'user_id' => $user->id,
             'payment_method' => 'credit_card',
-            'status' => 'completed',
+            'status' => 'placed',
         ]);
 
         $this->assertSame(2, OrderItem::query()->where('order_id', $context->order->id)->count());

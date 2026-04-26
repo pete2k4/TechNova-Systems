@@ -15,7 +15,7 @@ return new class extends Migration
             $table->decimal('subtotal', 10, 2);
             $table->decimal('discount', 10, 2)->default(0);
             $table->decimal('total', 10, 2);
-            $table->enum('status', ['pending', 'completed', 'failed', 'refunded'])->default('pending');
+            $table->enum('status', ['checkout_started', 'pending_payment_page', 'placed', 'canceled', 'completed', 'failed', 'refunded'])->default('checkout_started');
             $table->enum('payment_method', ['credit_card', 'paypal']);
             $table->string('payment_credential')->nullable();
             $table->timestamps();

@@ -6,7 +6,6 @@ namespace App\Services\Checkout\Template;
 
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Product;
 use App\Services\Checkout\CheckoutContext;
 use App\Services\CheckoutService;
 use RuntimeException;
@@ -46,17 +45,13 @@ abstract class BaseCheckoutFlow
             $paymentData['credential']
         );
 
-        if (!$paymentStrategy->process($finalTotal)) {
-            throw new RuntimeException('Checkout failed: payment strategy rejected the transaction.');
-        }
-
         $order = Order::create([
             'user_id' => $userId,
             'order_number' => 'ORD-' . strtoupper(uniqid()),
             'subtotal' => $cartTotal,
             'discount' => $discountAmount,
             'total' => $finalTotal,
-            'status' => $this->successfulOrderStatus(),
+            'status' => Order::STATUS_CHECKOUT_STARTED,
             'payment_method' => $validated['payment_type'],
             'payment_credential' => $validated['payment_credential'],
         ]);
@@ -68,12 +63,16 @@ abstract class BaseCheckoutFlow
                 'quantity' => $item['quantity'],
                 'price' => $item['price'],
             ]);
-
-            $product = Product::query()->find((int) $item['product_id']);
-            if ($product !== null) {
-                $this->afterItemPersisted($product, (int) $item['quantity']);
-            }
         }
+
+        $order->markPendingPaymentPage();
+
+        if (!$paymentStrategy->process($finalTotal)) {
+            $order->markCanceled();
+            throw new RuntimeException('Checkout failed: payment strategy rejected the transaction.');
+        }
+
+        $order->markPlaced();
 
         return new CheckoutContext(
             order: $order,
@@ -101,16 +100,6 @@ abstract class BaseCheckoutFlow
         }
 
         return $total;
-    }
-
-    protected function successfulOrderStatus(): string
-    {
-        return 'completed';
-    }
-
-    protected function afterItemPersisted(Product $product, int $quantity): void
-    {
-        // Hook for concrete checkout flows.
     }
 
     abstract protected function productType(): string;
