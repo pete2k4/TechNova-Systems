@@ -16,6 +16,8 @@
         .chips { display: flex; gap: 6px; flex-wrap: wrap; }
         .chip { background: #e8f0ff; color: #1746a2; padding: 4px 8px; border-radius: 999px; font-size: 12px; }
         .nav a { color: #1746a2; text-decoration: none; margin-right: 12px; }
+        .btn { display:inline-block; padding:10px 14px; border-radius:8px; text-decoration:none; border:1px solid #1746a2; }
+        .btn.primary { background:#1746a2; color:#fff; }
     </style>
 </head>
 <body>
@@ -26,6 +28,14 @@
     </div>
 
     <h1 style="margin-top: 0;">Admin Products</h1>
+
+    @if(session('status'))
+        <div class="card" style="background:#edf7ed; border:1px solid #cde8cd; margin-bottom:12px;">{{ session('status') }}</div>
+    @endif
+
+    <div style="margin-bottom:12px;">
+        <a class="btn primary" href="{{ route('admin.products.create') }}">Create Product</a>
+    </div>
 
     <div class="card">
         <form method="GET" class="grid">

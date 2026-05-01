@@ -29,6 +29,8 @@ Route::view('/checkout/payment-placeholder/{orderId}', 'checkout.payment-placeho
 Route::prefix('admin')->name('admin.')->group(function (): void {
     Route::get('/', [App\Http\Controllers\Admin\ProductController::class, 'index'])->name('dashboard');
     Route::get('/products', [App\Http\Controllers\Admin\ProductController::class, 'index'])->name('products.index');
+    Route::get('/products/create', [App\Http\Controllers\Admin\ProductController::class, 'create'])->name('products.create');
+    Route::post('/products', [App\Http\Controllers\Admin\ProductController::class, 'store'])->name('products.store');
 
     Route::get('/discounts', [App\Http\Controllers\Admin\DiscountController::class, 'index'])->name('discounts.index');
     Route::get('/discounts/create', [App\Http\Controllers\Admin\DiscountController::class, 'create'])->name('discounts.create');

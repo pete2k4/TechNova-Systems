@@ -8,9 +8,72 @@ use App\Http\Controllers\Controller;
 use App\Models\Category;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
+    public function __construct()
+    {
+        $user = request()->getUser();
+        $pass = request()->getPassword();
+        $envUser = env('ADMIN_USER', 'admin');
+        $envPass = env('ADMIN_PASS', 'password');
+
+        if (! ($user === $envUser && $pass === $envPass)) {
+            abort(response('Unauthorized', 401, ['WWW-Authenticate' => 'Basic realm="Admin Area"']));
+        }
+    }
+
+    public function create()
+    {
+        $categories = Category::query()->orderBy('name')->get(['id', 'name']);
+
+        return view('admin.products.create', [
+            'categories' => $categories,
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'category_id' => ['required', 'integer', 'exists:categories,id'],
+            'name' => ['required', 'string', 'max:255'],
+            'slug' => ['nullable', 'string', 'max:255', 'unique:products,slug'],
+            'description' => ['required', 'string'],
+            'price' => ['required', 'numeric', 'min:0.01'],
+            'type' => ['required', 'in:digital,physical'],
+            'sku' => ['required', 'string', 'max:255', 'unique:products,sku'],
+            'stock' => ['nullable', 'integer', 'min:0'],
+            'is_active' => ['nullable', 'boolean'],
+        ]);
+
+        $slug = trim((string) ($validated['slug'] ?? ''));
+        if ($slug === '') {
+            $baseSlug = Str::slug($validated['name']);
+            $slug = $baseSlug;
+            $counter = 1;
+
+            while (Product::query()->where('slug', $slug)->exists()) {
+                $counter++;
+                $slug = $baseSlug.'-'.$counter;
+            }
+        }
+
+        Product::query()->create([
+            'category_id' => (int) $validated['category_id'],
+            'name' => $validated['name'],
+            'slug' => $slug,
+            'description' => $validated['description'],
+            'price' => $validated['price'],
+            'type' => $validated['type'],
+            'sku' => $validated['sku'],
+            'stock' => $validated['type'] === 'physical' ? ($validated['stock'] ?? 0) : null,
+            'is_active' => (bool) ($validated['is_active'] ?? true),
+        ]);
+
+        return redirect()->route('admin.products.index')->with('status', 'Product created successfully.');
+    }
+
     public function index(Request $request)
     {
         $query = Product::query()->with([
