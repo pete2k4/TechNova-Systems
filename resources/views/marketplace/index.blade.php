@@ -20,6 +20,9 @@
         .products { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
         .product-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s; }
         .product-card:hover { transform: translateY(-4px); box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+        .product-media { background: #f0f0f0; height: 180px; display: flex; align-items: center; justify-content: center; }
+        .product-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .product-media-fallback { font-size: 40px; }
         .product-info { padding: 15px; }
         .product-name { font-weight: 600; color: #2c3e50; margin-bottom: 8px; }
         .product-type { font-size: 12px; color: #7f8c8d; margin-bottom: 10px; }
@@ -36,7 +39,7 @@
 <body>
     <div class="navbar">
         <div class="navbar-content">
-            <h2><a href="{{ route('marketplace.index') }}" style="color: #3498db; margin: 0;">🏪 NovaTech</a></h2>
+            <h2><a href="{{ route('marketplace.index') }}" style="color: #3498db; margin: 0;">&#x1F6EA; NovaTech</a></h2>
             <div>
                 <a href="{{ route('marketplace.index') }}">Home</a>
                 <a href="{{ route('marketplace.cart') }}">Cart
@@ -49,18 +52,18 @@
     </div>
 
     <div class="container">
-        <h1>✨ Welcome to NovaTech Marketplace</h1>
+        <h1>&#x2728; Welcome to NovaTech Marketplace</h1>
         
         <h3 style="margin-bottom: 15px; color: #555;">Browse by Category</h3>
         <div class="categories">
             <a href="{{ route('marketplace.index') }}" class="category-card">
-                <div style="font-size: 24px; margin-bottom: 8px;">🌟</div>
+                <div style="font-size: 24px; margin-bottom: 8px;">&#x1F31F;</div>
                 <div style="font-weight: 600;">All Products</div>
             </a>
             @foreach($categories as $category)
                 <a href="{{ route('marketplace.category', $category->slug) }}" class="category-card">
                     <div style="font-size: 24px; margin-bottom: 8px;">
-                        @if($category->id === 1) 💿 @elseif($category->id === 2) 📚 @elseif($category->id === 3) 🖥️ @elseif($category->id === 4) 🌐 @else 🔧 @endif
+                        @if($category->id === 1) &#x1F4BF; @elseif($category->id === 2) &#x1F4DA; @elseif($category->id === 3) &#x1F5A5; @elseif($category->id === 4) &#x1F310; @else &#x1F527; @endif
                     </div>
                     <div style="font-weight: 600;">{{ $category->name }}</div>
                 </a>
@@ -71,8 +74,12 @@
         <div class="products">
             @forelse($products as $product)
                 <div class="product-card">
-                    <div style="background: #f0f0f0; padding: 20px; text-align: center; font-size: 40px;">
-                        @if($product->isDigital()) 💾 @else 🖥️ @endif
+                    <div class="product-media">
+                        @if(!empty($product->image_url))
+                            <img src="{{ $product->image_url }}" alt="{{ $product->name }}">
+                        @else
+                            <div class="product-media-fallback">@if($product->isDigital()) &#x1F4BE; @else &#x1F5A5; @endif</div>
+                        @endif
                     </div>
                     <div class="product-info">
                         <a href="{{ route('marketplace.product', $product->slug) }}" class="product-name" style="text-decoration: none; color: #2c3e50; display: block;">
@@ -87,15 +94,15 @@
                         @if($product->isPhysical())
                             <div class="product-stock">
                                 @if($product->stock > 5)
-                                    <span style="color: #27ae60;">✓ {{ $product->stock }} in stock</span>
+                                    <span style="color: #27ae60;">&#x2713; {{ $product->stock }} in stock</span>
                                 @elseif($product->stock > 0)
-                                    <span style="color: #f39c12;">⚠ Only {{ $product->stock }} left</span>
+                                    <span style="color: #f39c12;">&#x26A0; Only {{ $product->stock }} left</span>
                                 @else
-                                    <span style="color: #e74c3c;">✗ Out of stock</span>
+                                    <span style="color: #e74c3c;">&#x2717; Out of stock</span>
                                 @endif
                             </div>
                         @endif
-                        <a href="{{ route('marketplace.product', $product->slug) }}" class="product-link">View Details →</a>
+                        <a href="{{ route('marketplace.product', $product->slug) }}" class="product-link">View Details &#x2192;</a>
                     </div>
                 </div>
             @empty

@@ -17,7 +17,9 @@
         .breadcrumb a { color: #3498db; text-decoration: none; }
         .product-section { background: white; padding: 40px; border-radius: 8px; margin-bottom: 40px; }
         .product-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
-        .product-image { background: #f0f0f0; padding: 40px; border-radius: 8px; text-align: center; font-size: 100px; }
+        .product-image { background: #f0f0f0; border-radius: 8px; overflow: hidden; height: 420px; display: flex; align-items: center; justify-content: center; }
+        .product-image img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .product-image-fallback { font-size: 100px; }
         .product-details h1 { margin-bottom: 15px; color: #2c3e50; }
         .product-category { color: #3498db; text-decoration: none; font-size: 14px; margin-bottom: 15px; display: inline-block; }
         .product-category:hover { text-decoration: underline; }
@@ -42,15 +44,19 @@
         .related-card { background: white; border-radius: 8px; padding: 15px; overflow: hidden; }
         .related-card a { text-decoration: none; color: #3498db; font-weight: 600; }
         .related-card a:hover { text-decoration: underline; }
+        .related-media { background: #f0f0f0; border-radius: 6px; overflow: hidden; height: 140px; margin-bottom: 10px; display:flex; align-items:center; justify-content:center; }
+        .related-media img { width:100%; height:100%; object-fit: cover; display:block; }
+        .related-media-fallback { font-size: 40px; }
         @media (max-width: 768px) {
             .product-layout { grid-template-columns: 1fr; }
+            .product-image { height: 300px; }
         }
     </style>
 </head>
 <body>
     <div class="navbar">
         <div class="navbar-content">
-            <h2><a href="{{ route('marketplace.index') }}" style="color: #3498db; margin: 0;">🏪 NovaTech</a></h2>
+            <h2><a href="{{ route('marketplace.index') }}" style="color: #3498db; margin: 0;">&#x1F6EA; NovaTech</a></h2>
             <div>
                 <a href="{{ route('marketplace.index') }}">Home</a>
                 <a href="{{ route('marketplace.cart') }}">Cart
@@ -72,29 +78,33 @@
         <div class="product-section">
             <div class="product-layout">
                 <div class="product-image">
-                    @if($product->isDigital()) 💾 @else 🖥️ @endif
+                    @if(!empty($product->image_url))
+                        <img src="{{ $product->image_url }}" alt="{{ $product->name }}">
+                    @else
+                        <div class="product-image-fallback">@if($product->isDigital()) &#x1F4BE; @else &#x1F5A5; @endif</div>
+                    @endif
                 </div>
                 <div class="product-details">
-                    <a href="{{ route('marketplace.category', $product->category->slug) }}" class="product-category">← {{ $product->category->name }}</a>
+                    <a href="{{ route('marketplace.category', $product->category->slug) }}" class="product-category">&#x2190; {{ $product->category->name }}</a>
                     <span class="product-type-badge">{{ $product->isDigital() ? 'DIGITAL' : 'PHYSICAL' }}</span>
                     
                     <h1 style="margin-top: 10px;">{{ $product->name }}</h1>
-                    <div class="rating">⭐⭐⭐⭐⭐ (Highly Rated)</div>
+                    <div class="rating">&#x2B50;&#x2B50;&#x2B50;&#x2B50;&#x2B50; (Highly Rated)</div>
 
                     <div class="product-price">${{ number_format($product->price, 2) }}</div>
 
                     @if($product->isPhysical())
                         <div class="product-stock @if($product->stock > 5) available @elseif($product->stock > 0) low @else unavailable @endif">
                             @if($product->stock > 5)
-                                ✓ {{ $product->stock }} in stock - Ships within 2-3 business days
+                                &#x2713; {{ $product->stock }} in stock - Ships within 2-3 business days
                             @elseif($product->stock > 0)
-                                ⚠ Only {{ $product->stock }} left in stock - Order now!
+                                &#x26A0; Only {{ $product->stock }} left in stock - Order now!
                             @else
-                                ✗ Out of stock - Check back soon
+                                &#x2717; Out of stock - Check back soon
                             @endif
                         </div>
                     @else
-                        <div class="product-stock available">✓ Instant Digital Delivery - Available 24/7</div>
+                        <div class="product-stock available">&#x2713; Instant Digital Delivery - Available 24/7</div>
                     @endif
 
                     <div class="product-description">
@@ -111,12 +121,12 @@
                                 <label for="quantity">Quantity</label>
                                 <input type="number" id="quantity" name="quantity" value="1" min="1" max="{{ $product->isPhysical() ? $product->stock : 100 }}" required>
                             </div>
-                            <button type="submit">🛒 Add to Cart</button>
+                            <button type="submit">&#x1F6D2; Add to Cart</button>
                         </form>
                     @endif
 
                     <div style="padding: 20px; background: #f9f9f9; border-radius: 4px; font-size: 14px; color: #555;">
-                        <h4 style="margin-bottom: 10px; color: #2c3e50;">📦 Product Info</h4>
+                        <h4 style="margin-bottom: 10px; color: #2c3e50;">&#x1F4E6; Product Info</h4>
                         <p><strong>SKU:</strong> {{ $product->sku }}</p>
                         <p><strong>Type:</strong> {{ $product->isDigital() ? 'Digital (Instant Access)' : 'Physical (Shipped)' }}</p>
                     </div>
@@ -130,12 +140,16 @@
                 <div class="related-products">
                     @foreach($relatedProducts as $related)
                         <div class="related-card">
-                            <div style="background: #f0f0f0; padding: 20px; text-align: center; font-size: 40px; margin-bottom: 10px;">
-                                @if($related->isDigital()) 💾 @else 🖥️ @endif
+                            <div class="related-media">
+                                @if(!empty($related->image_url))
+                                    <img src="{{ $related->image_url }}" alt="{{ $related->name }}">
+                                @else
+                                    <div class="related-media-fallback">@if($related->isDigital()) &#x1F4BE; @else &#x1F5A5; @endif</div>
+                                @endif
                             </div>
                             <p style="font-weight: 600; color: #2c3e50; margin-bottom: 8px;">{{ $related->name }}</p>
                             <p style="color: #27ae60; font-weight: bold; margin-bottom: 10px;">${{ number_format($related->price, 2) }}</p>
-                            <a href="{{ route('marketplace.product', $related->slug) }}">View →</a>
+                            <a href="{{ route('marketplace.product', $related->slug) }}">View &#x2192;</a>
                         </div>
                     @endforeach
                 </div>

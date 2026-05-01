@@ -24,56 +24,6 @@ class ProductController extends Controller
         }
     }
 
-    public function create()
-    {
-        $categories = Category::query()->orderBy('name')->get(['id', 'name']);
-
-        return view('admin.products.create', [
-            'categories' => $categories,
-        ]);
-    }
-
-    public function store(Request $request)
-    {
-        $validated = $request->validate([
-            'category_id' => ['required', 'integer', 'exists:categories,id'],
-            'name' => ['required', 'string', 'max:255'],
-            'slug' => ['nullable', 'string', 'max:255', 'unique:products,slug'],
-            'description' => ['required', 'string'],
-            'price' => ['required', 'numeric', 'min:0.01'],
-            'type' => ['required', 'in:digital,physical'],
-            'sku' => ['required', 'string', 'max:255', 'unique:products,sku'],
-            'stock' => ['nullable', 'integer', 'min:0'],
-            'is_active' => ['nullable', 'boolean'],
-        ]);
-
-        $slug = trim((string) ($validated['slug'] ?? ''));
-        if ($slug === '') {
-            $baseSlug = Str::slug($validated['name']);
-            $slug = $baseSlug;
-            $counter = 1;
-
-            while (Product::query()->where('slug', $slug)->exists()) {
-                $counter++;
-                $slug = $baseSlug.'-'.$counter;
-            }
-        }
-
-        Product::query()->create([
-            'category_id' => (int) $validated['category_id'],
-            'name' => $validated['name'],
-            'slug' => $slug,
-            'description' => $validated['description'],
-            'price' => $validated['price'],
-            'type' => $validated['type'],
-            'sku' => $validated['sku'],
-            'stock' => $validated['type'] === 'physical' ? ($validated['stock'] ?? 0) : null,
-            'is_active' => (bool) ($validated['is_active'] ?? true),
-        ]);
-
-        return redirect()->route('admin.products.index')->with('status', 'Product created successfully.');
-    }
-
     public function index(Request $request)
     {
         $query = Product::query()->with([
@@ -136,5 +86,121 @@ class ProductController extends Controller
             'categories' => $categories,
             'filters' => $request->all(),
         ]);
+    }
+
+    public function create()
+    {
+        $categories = Category::query()->orderBy('name')->get(['id', 'name']);
+
+        return view('admin.products.create', [
+            'categories' => $categories,
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'category_id' => ['required', 'integer', 'exists:categories,id'],
+            'name' => ['required', 'string', 'max:255'],
+            'slug' => ['nullable', 'string', 'max:255', 'unique:products,slug'],
+            'description' => ['required', 'string'],
+            'image_url' => ['nullable', 'url', 'max:2048'],
+            'price' => ['required', 'numeric', 'min:0.01'],
+            'type' => ['required', 'in:digital,physical'],
+            'sku' => ['required', 'string', 'max:255', 'unique:products,sku'],
+            'stock' => ['nullable', 'integer', 'min:0'],
+            'is_active' => ['nullable', 'boolean'],
+        ]);
+
+        $slug = trim((string) ($validated['slug'] ?? ''));
+        if ($slug === '') {
+            $slug = $this->generateUniqueSlug($validated['name']);
+        }
+
+        Product::query()->create([
+            'category_id' => (int) $validated['category_id'],
+            'name' => $validated['name'],
+            'slug' => $slug,
+            'description' => $validated['description'],
+            'image_url' => $validated['image_url'] ?? null,
+            'price' => $validated['price'],
+            'type' => $validated['type'],
+            'sku' => $validated['sku'],
+            'stock' => $validated['type'] === 'physical' ? ($validated['stock'] ?? 0) : null,
+            'is_active' => (bool) ($validated['is_active'] ?? true),
+        ]);
+
+        return redirect()->route('admin.products.index')->with('status', 'Product created successfully.');
+    }
+
+    public function edit(Product $product)
+    {
+        $categories = Category::query()->orderBy('name')->get(['id', 'name']);
+
+        return view('admin.products.edit', [
+            'product' => $product,
+            'categories' => $categories,
+        ]);
+    }
+
+    public function update(Request $request, Product $product)
+    {
+        $validated = $request->validate([
+            'category_id' => ['required', 'integer', 'exists:categories,id'],
+            'name' => ['required', 'string', 'max:255'],
+            'slug' => ['nullable', 'string', 'max:255', 'unique:products,slug,'.$product->id],
+            'description' => ['required', 'string'],
+            'image_url' => ['nullable', 'url', 'max:2048'],
+            'price' => ['required', 'numeric', 'min:0.01'],
+            'type' => ['required', 'in:digital,physical'],
+            'sku' => ['required', 'string', 'max:255', 'unique:products,sku,'.$product->id],
+            'stock' => ['nullable', 'integer', 'min:0'],
+            'is_active' => ['nullable', 'boolean'],
+        ]);
+
+        $slug = trim((string) ($validated['slug'] ?? ''));
+        if ($slug === '') {
+            $slug = $this->generateUniqueSlug($validated['name'], $product->id);
+        }
+
+        $product->update([
+            'category_id' => (int) $validated['category_id'],
+            'name' => $validated['name'],
+            'slug' => $slug,
+            'description' => $validated['description'],
+            'image_url' => $validated['image_url'] ?? null,
+            'price' => $validated['price'],
+            'type' => $validated['type'],
+            'sku' => $validated['sku'],
+            'stock' => $validated['type'] === 'physical' ? ($validated['stock'] ?? 0) : null,
+            'is_active' => (bool) ($validated['is_active'] ?? true),
+        ]);
+
+        return redirect()->route('admin.products.index')->with('status', 'Product updated successfully.');
+    }
+
+    public function destroy(Product $product)
+    {
+        $product->discounts()->detach();
+        $product->delete();
+
+        return redirect()->route('admin.products.index')->with('status', 'Product deleted successfully.');
+    }
+
+    private function generateUniqueSlug(string $name, ?int $ignoreId = null): string
+    {
+        $baseSlug = Str::slug($name);
+        $slug = $baseSlug;
+        $counter = 1;
+
+        while (Product::query()
+            ->when($ignoreId !== null, fn ($q) => $q->where('id', '!=', $ignoreId))
+            ->where('slug', $slug)
+            ->exists()) {
+            $counter++;
+            $slug = $baseSlug.'-'.$counter;
+        }
+
+        return $slug;
     }
 }

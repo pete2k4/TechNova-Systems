@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,18 +6,22 @@
     <title>Admin Products</title>
     <style>
         body { font-family: "Segoe UI", Tahoma, sans-serif; margin: 0; background: #f6f8fb; color: #223; }
-        .wrap { max-width: 1200px; margin: 0 auto; padding: 24px; }
+        .wrap { max-width: 1280px; margin: 0 auto; padding: 24px; }
         .card { background: #fff; border-radius: 12px; padding: 18px; box-shadow: 0 2px 10px rgba(25, 35, 55, 0.08); }
         .grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
         .grid input, .grid select, .grid button { padding: 10px; border: 1px solid #d8deeb; border-radius: 8px; }
         table { width: 100%; border-collapse: collapse; margin-top: 14px; }
-        th, td { text-align: left; padding: 10px; border-bottom: 1px solid #ebeff7; font-size: 14px; }
+        th, td { text-align: left; padding: 10px; border-bottom: 1px solid #ebeff7; font-size: 14px; vertical-align: top; }
         th { background: #f1f5fc; }
         .chips { display: flex; gap: 6px; flex-wrap: wrap; }
         .chip { background: #e8f0ff; color: #1746a2; padding: 4px 8px; border-radius: 999px; font-size: 12px; }
         .nav a { color: #1746a2; text-decoration: none; margin-right: 12px; }
-        .btn { display:inline-block; padding:10px 14px; border-radius:8px; text-decoration:none; border:1px solid #1746a2; }
+        .btn { display:inline-block; padding:8px 12px; border-radius:8px; text-decoration:none; border:1px solid #1746a2; background:#fff; color:#1746a2; }
         .btn.primary { background:#1746a2; color:#fff; }
+        .btn.danger { border-color:#b42318; color:#b42318; }
+        .actions { display:flex; gap:8px; align-items:center; }
+        .thumb { width: 64px; height: 64px; object-fit: cover; border: 1px solid #d8deeb; border-radius: 8px; }
+        .thumb-empty { width: 64px; height: 64px; border: 1px dashed #d8deeb; border-radius: 8px; display:flex; align-items:center; justify-content:center; color:#94a3b8; font-size:11px; }
     </style>
 </head>
 <body>
@@ -75,17 +79,26 @@
         <table>
             <thead>
                 <tr>
+                    <th>Image</th>
                     <th>Product</th>
                     <th>SKU</th>
                     <th>Type</th>
                     <th>Price</th>
                     <th>Stock</th>
                     <th>Discounts</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
             @forelse($products as $product)
                 <tr>
+                    <td>
+                        @if(!empty($product->image_url))
+                            <img class="thumb" src="{{ $product->image_url }}" alt="{{ $product->name }}">
+                        @else
+                            <div class="thumb-empty">No image</div>
+                        @endif
+                    </td>
                     <td>{{ $product->name }}</td>
                     <td>{{ $product->sku }}</td>
                     <td>{{ ucfirst($product->type) }}</td>
@@ -103,10 +116,20 @@
                             @endforelse
                         </div>
                     </td>
+                    <td>
+                        <div class="actions">
+                            <a class="btn" href="{{ route('admin.products.edit', $product) }}">Edit</a>
+                            <form method="POST" action="{{ route('admin.products.destroy', $product) }}" onsubmit="return confirm('Delete this product?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn danger">Delete</button>
+                            </form>
+                        </div>
+                    </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="6">No products found.</td>
+                    <td colspan="8">No products found.</td>
                 </tr>
             @endforelse
             </tbody>
