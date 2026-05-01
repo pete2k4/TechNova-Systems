@@ -26,6 +26,9 @@
         .product-type-badge { display: inline-block; padding: 8px 16px; background: #ecf0f1; border-radius: 4px; font-size: 12px; font-weight: bold; margin-bottom: 20px; margin-left: 10px; }
         .rating { color: #f39c12; margin-bottom: 20px; }
         .product-price { font-size: 36px; color: #27ae60; font-weight: bold; margin: 20px 0; }
+        .product-price .original { color: #7f8c8d; text-decoration: line-through; font-size: 18px; font-weight: 500; margin-right: 12px; }
+        .product-price .sale { color: #c0392b; }
+        .sale-badge { display: inline-block; margin-top: 12px; padding: 6px 10px; border-radius: 999px; background: #fff0f0; color: #c0392b; font-size: 12px; font-weight: 700; text-transform: uppercase; }
         .product-stock { font-size: 14px; margin-bottom: 20px; }
         .product-stock.available { color: #27ae60; }
         .product-stock.low { color: #f39c12; }
@@ -91,7 +94,15 @@
                     <h1 style="margin-top: 10px;">{{ $product->name }}</h1>
                     <div class="rating">&#x2B50;&#x2B50;&#x2B50;&#x2B50;&#x2B50; (Highly Rated)</div>
 
-                    <div class="product-price">${{ number_format($product->price, 2) }}</div>
+                    @if($product->discounted_price < $product->price)
+                        <div class="sale-badge">Discounted</div>
+                        <div class="product-price">
+                            <span class="original">${{ number_format($product->price, 2) }}</span>
+                            <span class="sale">${{ number_format($product->discounted_price, 2) }}</span>
+                        </div>
+                    @else
+                        <div class="product-price">${{ number_format($product->price, 2) }}</div>
+                    @endif
 
                     @if($product->isPhysical())
                         <div class="product-stock @if($product->stock > 5) available @elseif($product->stock > 0) low @else unavailable @endif">
@@ -148,7 +159,14 @@
                                 @endif
                             </div>
                             <p style="font-weight: 600; color: #2c3e50; margin-bottom: 8px;">{{ $related->name }}</p>
-                            <p style="color: #27ae60; font-weight: bold; margin-bottom: 10px;">${{ number_format($related->price, 2) }}</p>
+                            @if($related->discounted_price < $related->price)
+                                <p style="margin-bottom: 10px;">
+                                    <span style="color:#7f8c8d; text-decoration:line-through; font-size: 12px; margin-right: 6px;">${{ number_format($related->price, 2) }}</span>
+                                    <span style="color:#c0392b; font-weight:bold;">${{ number_format($related->discounted_price, 2) }}</span>
+                                </p>
+                            @else
+                                <p style="color: #27ae60; font-weight: bold; margin-bottom: 10px;">${{ number_format($related->price, 2) }}</p>
+                            @endif
                             <a href="{{ route('marketplace.product', $related->slug) }}">View &#x2192;</a>
                         </div>
                     @endforeach

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Services\PriceCalculator;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -43,5 +44,20 @@ class Product extends Model
     public function isPhysical(): bool
     {
         return $this->type === 'physical';
+    }
+
+    public function getDiscountedPriceAttribute(): float
+    {
+        $basePrice = (float) $this->price;
+        $discounts = $this->relationLoaded('discounts')
+            ? $this->discounts->filter(fn (Discount $discount): bool => $discount->is_active)
+            : $this->discounts()->active()->get();
+
+        if ($discounts->isEmpty()) {
+            return $basePrice;
+        }
+
+        $calculator = new PriceCalculator();
+        return $calculator->applyMultipleDiscounts($basePrice, $discounts);
     }
 }

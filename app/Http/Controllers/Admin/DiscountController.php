@@ -39,6 +39,7 @@ class DiscountController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'type' => ['required', 'in:percentage,fixed'],
+            'category' => ['required', 'in:high,low'],
             'amount' => ['required', 'numeric', 'min:0.01'],
             'starts_at' => ['nullable', 'date'],
             'ends_at' => ['nullable', 'date', 'after_or_equal:starts_at'],
@@ -51,6 +52,7 @@ class DiscountController extends Controller
         $discount = Discount::create([
             'name' => $validated['name'],
             'type' => $validated['type'],
+            'category' => $validated['category'],
             'amount' => $validated['amount'],
             'starts_at' => $validated['starts_at'] ?? null,
             'ends_at' => $validated['ends_at'] ?? null,
@@ -81,6 +83,11 @@ class DiscountController extends Controller
             'product_ids.*' => ['integer', 'exists:products,id'],
         ]);
 
+        $discount->forceFill([
+            'is_active' => true,
+            'starts_at' => $discount->starts_at && $discount->starts_at->isFuture() ? now() : $discount->starts_at,
+        ])->save();
+
         $payload = [];
         foreach ($validated['product_ids'] as $productId) {
             $payload[$productId] = ['applied_at' => now()->toDateTimeString()];
@@ -91,6 +98,16 @@ class DiscountController extends Controller
         return redirect()
             ->route('admin.discounts.index')
             ->with('status', 'Discount applied to selected products.');
+    }
+
+    public function destroy(Discount $discount)
+    {
+        $discountName = $discount->name;
+        $discount->delete();
+
+        return redirect()
+            ->route('admin.discounts.index')
+            ->with('status', "Discount '{$discountName}' deleted successfully. All product associations have been removed.");
     }
 
     public function runSchedule()

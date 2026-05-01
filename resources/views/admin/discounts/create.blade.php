@@ -46,6 +46,14 @@
             </div>
 
             <div>
+                <label>Category</label>
+                <select name="category" required>
+                    <option value="high" @selected(old('category', 'high') === 'high')>High (applied from base price)</option>
+                    <option value="low" @selected(old('category') === 'low')>Low (applied after High discounts)</option>
+                </select>
+            </div>
+
+            <div>
                 <label>Amount</label>
                 <input type="number" step="0.01" min="0.01" name="amount" value="{{ old('amount') }}" required>
             </div>

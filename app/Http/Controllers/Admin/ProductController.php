@@ -6,6 +6,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Category;
+use App\Models\Discount;
 use App\Models\Product;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -91,9 +92,11 @@ class ProductController extends Controller
     public function create()
     {
         $categories = Category::query()->orderBy('name')->get(['id', 'name']);
+        $discounts = Discount::query()->orderBy('name')->get(['id', 'name', 'type', 'amount']);
 
         return view('admin.products.create', [
             'categories' => $categories,
+            'discounts' => $discounts,
         ]);
     }
 
@@ -110,6 +113,8 @@ class ProductController extends Controller
             'sku' => ['required', 'string', 'max:255', 'unique:products,sku'],
             'stock' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
+            'discount_ids' => ['nullable', 'array'],
+            'discount_ids.*' => ['integer', 'exists:discounts,id'],
         ]);
 
         $slug = trim((string) ($validated['slug'] ?? ''));
@@ -117,7 +122,7 @@ class ProductController extends Controller
             $slug = $this->generateUniqueSlug($validated['name']);
         }
 
-        Product::query()->create([
+        $product = Product::query()->create([
             'category_id' => (int) $validated['category_id'],
             'name' => $validated['name'],
             'slug' => $slug,
@@ -130,16 +135,20 @@ class ProductController extends Controller
             'is_active' => (bool) ($validated['is_active'] ?? true),
         ]);
 
+        $this->syncProductDiscounts($product, $validated['discount_ids'] ?? []);
+
         return redirect()->route('admin.products.index')->with('status', 'Product created successfully.');
     }
 
     public function edit(Product $product)
     {
         $categories = Category::query()->orderBy('name')->get(['id', 'name']);
+        $discounts = Discount::query()->orderBy('name')->get(['id', 'name', 'type', 'amount']);
 
         return view('admin.products.edit', [
             'product' => $product,
             'categories' => $categories,
+            'discounts' => $discounts,
         ]);
     }
 
@@ -156,6 +165,8 @@ class ProductController extends Controller
             'sku' => ['required', 'string', 'max:255', 'unique:products,sku,'.$product->id],
             'stock' => ['nullable', 'integer', 'min:0'],
             'is_active' => ['nullable', 'boolean'],
+            'discount_ids' => ['nullable', 'array'],
+            'discount_ids.*' => ['integer', 'exists:discounts,id'],
         ]);
 
         $slug = trim((string) ($validated['slug'] ?? ''));
@@ -175,6 +186,8 @@ class ProductController extends Controller
             'stock' => $validated['type'] === 'physical' ? ($validated['stock'] ?? 0) : null,
             'is_active' => (bool) ($validated['is_active'] ?? true),
         ]);
+
+        $this->syncProductDiscounts($product, $validated['discount_ids'] ?? []);
 
         return redirect()->route('admin.products.index')->with('status', 'Product updated successfully.');
     }
@@ -202,5 +215,36 @@ class ProductController extends Controller
         }
 
         return $slug;
+    }
+
+    /**
+     * @param array<int, int> $discountIds
+     */
+    private function syncProductDiscounts(Product $product, array $discountIds): void
+    {
+        $payload = [];
+        $selectedDiscountIds = [];
+
+        foreach (array_unique($discountIds) as $discountId) {
+            $discountId = (int) $discountId;
+            $selectedDiscountIds[] = $discountId;
+            $payload[$discountId] = [
+                'applied_at' => now()->toDateTimeString(),
+            ];
+        }
+
+        if (!empty($selectedDiscountIds)) {
+            Discount::query()
+                ->whereIn('id', $selectedDiscountIds)
+                ->get()
+                ->each(function (Discount $discount): void {
+                    $discount->forceFill([
+                        'is_active' => true,
+                        'starts_at' => $discount->starts_at && $discount->starts_at->isFuture() ? now() : $discount->starts_at,
+                    ])->save();
+                });
+        }
+
+        $product->discounts()->sync($payload);
     }
 }

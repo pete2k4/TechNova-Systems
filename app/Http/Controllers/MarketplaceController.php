@@ -18,7 +18,8 @@ class MarketplaceController extends Controller
     public function index(): View
     {
         $categories = Category::all();
-        $products = Product::where('is_active', true)
+        $products = Product::with(['discounts' => fn ($discounts) => $discounts->active()])
+            ->where('is_active', true)
             ->orderBy('created_at', 'desc')
             ->paginate(12);
 
@@ -36,6 +37,7 @@ class MarketplaceController extends Controller
         $category = Category::where('slug', $slug)->firstOrFail();
         
         $products = $category->products()
+            ->with(['discounts' => fn ($discounts) => $discounts->active()])
             ->where('is_active', true)
             ->paginate(12);
 
@@ -53,8 +55,11 @@ class MarketplaceController extends Controller
      */
     public function show(string $slug): View
     {
-        $product = Product::where('slug', $slug)->firstOrFail();
+        $product = Product::with(['category', 'discounts' => fn ($discounts) => $discounts->active()])
+            ->where('slug', $slug)
+            ->firstOrFail();
         $relatedProducts = $product->category->products()
+            ->with(['discounts' => fn ($discounts) => $discounts->active()])
             ->where('id', '!=', $product->id)
             ->where('is_active', true)
             ->limit(4)
@@ -75,7 +80,7 @@ class MarketplaceController extends Controller
             'quantity' => 'required|integer|min:1|max:100',
         ]);
 
-        $product = Product::findOrFail($productId);
+        $product = Product::with(['discounts' => fn ($discounts) => $discounts->active()])->findOrFail($productId);
 
         if ($product->isPhysical() && $product->stock < $request->quantity) {
             return back()->with('error', 'Insufficient stock available');
@@ -89,7 +94,7 @@ class MarketplaceController extends Controller
             $cart[$productId] = [
                 'product_id' => $product->id,
                 'name' => $product->name,
-                'price' => $product->price,
+                'price' => $product->discounted_price,
                 'type' => $product->type,
                 'quantity' => $request->quantity,
             ];

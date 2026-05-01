@@ -21,6 +21,9 @@
         .products { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
         .product-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s; }
         .product-card:hover { transform: translateY(-4px); box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
+        .product-media { background: #f0f0f0; height: 180px; display: flex; align-items: center; justify-content: center; }
+        .product-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .product-media-fallback { font-size: 40px; }
         .product-info { padding: 15px; }
         .product-name { font-weight: 600; color: #2c3e50; margin-bottom: 8px; }
         .product-type-badge { display: inline-block; padding: 4px 8px; background: #ecf0f1; border-radius: 4px; font-size: 11px; font-weight: bold; margin-bottom: 10px; }
@@ -56,8 +59,12 @@
         <div class="products">
             @forelse($products as $product)
                 <div class="product-card">
-                    <div style="background: #f0f0f0; padding: 20px; text-align: center; font-size: 40px;">
-                        @if($product->isDigital()) 💾 @else 🖥️ @endif
+                    <div class="product-media">
+                        @if(!empty($product->image_url))
+                            <img src="{{ $product->image_url }}" alt="{{ $product->name }}">
+                        @else
+                            <div class="product-media-fallback">@if($product->isDigital()) 💾 @else 🖥️ @endif</div>
+                        @endif
                     </div>
                     <div class="product-info">
                         <a href="{{ route('marketplace.product', $product->slug) }}" style="text-decoration: none; color: #2c3e50; display: block; font-weight: 600; margin-bottom: 8px;">
@@ -68,7 +75,15 @@
                                 @if($product->isDigital()) DIGITAL @else PHYSICAL @endif
                             </span>
                         </div>
-                        <div class="product-price">${{ number_format($product->price, 2) }}</div>
+                        @if($product->discounted_price < $product->price)
+                            <div style="display: inline-block; margin-bottom: 8px; padding: 4px 8px; border-radius: 999px; background: #fff0f0; color: #c0392b; font-size: 11px; font-weight: 700; text-transform: uppercase;">Discounted</div>
+                            <div class="product-price">
+                                <span style="color: #7f8c8d; text-decoration: line-through; font-size: 13px; font-weight: 500; margin-right: 8px;">${{ number_format($product->price, 2) }}</span>
+                                <span style="color: #c0392b;">${{ number_format($product->discounted_price, 2) }}</span>
+                            </div>
+                        @else
+                            <div class="product-price">${{ number_format($product->price, 2) }}</div>
+                        @endif
                         @if($product->isPhysical())
                             <div class="product-stock">
                                 @if($product->stock > 5)

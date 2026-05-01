@@ -11,6 +11,11 @@
         .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
         .full { grid-column: 1 / -1; }
         input, textarea, select { width: 100%; padding: 10px; border: 1px solid #d8deeb; border-radius: 8px; }
+        .checkbox-group { display: grid; gap: 10px; margin-top: 10px; }
+        .checkbox-item { display: flex; gap: 10px; align-items: flex-start; padding: 10px; border: 1px solid #d8deeb; border-radius: 8px; background: #fbfcff; }
+        .checkbox-item input { width: auto; margin-top: 3px; }
+        .checkbox-title { font-weight: 600; }
+        .checkbox-meta { color: #6b7280; font-size: 13px; margin-top: 3px; }
         button { padding: 10px 14px; border: 1px solid #1746a2; border-radius: 8px; background: #1746a2; color: #fff; cursor: pointer; }
         .error { background: #fff1f1; border: 1px solid #ffd6d6; color: #8a1f1f; padding: 12px; border-radius: 8px; margin-bottom: 12px; }
     </style>
@@ -83,6 +88,24 @@
             <div class="full">
                 <label>Description</label>
                 <textarea name="description" rows="5" required>{{ old('description') }}</textarea>
+            </div>
+
+            <div class="full">
+                <label>Applicable Discounts</label>
+                @php
+                    $selectedDiscountIds = array_map('strval', old('discount_ids', []));
+                @endphp
+                <div class="checkbox-group">
+                    @foreach($discounts as $discount)
+                        <label class="checkbox-item">
+                            <input type="checkbox" name="discount_ids[]" value="{{ $discount->id }}" @checked(in_array((string) $discount->id, $selectedDiscountIds, true))>
+                            <span>
+                                <span class="checkbox-title">{{ $discount->name }}</span>
+                                <div class="checkbox-meta">{{ ucfirst($discount->type) }}: {{ $discount->type === 'percentage' ? ((float) $discount->amount).'%' : '$'.number_format((float) $discount->amount, 2) }}</div>
+                            </span>
+                        </label>
+                    @endforeach
+                </div>
             </div>
 
             <div class="full">

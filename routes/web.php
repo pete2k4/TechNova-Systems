@@ -39,5 +39,6 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
     Route::get('/discounts/create', [App\Http\Controllers\Admin\DiscountController::class, 'create'])->name('discounts.create');
     Route::post('/discounts', [App\Http\Controllers\Admin\DiscountController::class, 'store'])->name('discounts.store');
     Route::post('/discounts/{discount}/apply', [App\Http\Controllers\Admin\DiscountController::class, 'apply'])->name('discounts.apply');
+        Route::delete('/discounts/{discount}', [App\Http\Controllers\Admin\DiscountController::class, 'destroy'])->name('discounts.destroy');
     Route::post('/discounts/run-schedule', [App\Http\Controllers\Admin\DiscountController::class, 'runSchedule'])->name('discounts.run-schedule');
 });

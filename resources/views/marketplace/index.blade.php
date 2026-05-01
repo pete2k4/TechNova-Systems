@@ -28,6 +28,9 @@
         .product-type { font-size: 12px; color: #7f8c8d; margin-bottom: 10px; }
         .product-type-badge { display: inline-block; padding: 4px 8px; background: #ecf0f1; border-radius: 4px; font-size: 11px; font-weight: bold; }
         .product-price { color: #27ae60; font-size: 20px; font-weight: bold; margin: 10px 0; }
+        .product-price .original { color: #7f8c8d; text-decoration: line-through; font-size: 13px; font-weight: 500; margin-right: 8px; }
+        .product-price .sale { color: #c0392b; }
+        .sale-badge { display: inline-block; margin-bottom: 8px; padding: 4px 8px; border-radius: 999px; background: #fff0f0; color: #c0392b; font-size: 11px; font-weight: 700; text-transform: uppercase; }
         .product-stock { font-size: 12px; color: #7f8c8d; margin-bottom: 10px; }
         .product-link { display: inline-block; color: #3498db; text-decoration: none; font-size: 14px; font-weight: 600; }
         .product-link:hover { text-decoration: underline; }
@@ -90,7 +93,15 @@
                                 @if($product->isDigital()) DIGITAL @else PHYSICAL @endif
                             </span>
                         </div>
-                        <div class="product-price">${{ number_format($product->price, 2) }}</div>
+                        @if($product->discounted_price < $product->price)
+                            <div class="sale-badge">Discounted</div>
+                            <div class="product-price">
+                                <span class="original">${{ number_format($product->price, 2) }}</span>
+                                <span class="sale">${{ number_format($product->discounted_price, 2) }}</span>
+                            </div>
+                        @else
+                            <div class="product-price">${{ number_format($product->price, 2) }}</div>
+                        @endif
                         @if($product->isPhysical())
                             <div class="product-stock">
                                 @if($product->stock > 5)

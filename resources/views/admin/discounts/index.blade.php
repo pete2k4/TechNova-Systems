@@ -12,6 +12,12 @@
         .actions { display: flex; gap: 10px; flex-wrap: wrap; }
         .btn { display: inline-block; padding: 10px 14px; border-radius: 8px; border: 1px solid #d1d9ea; background: #fff; cursor: pointer; }
         .btn.primary { background: #1746a2; color: #fff; border-color: #1746a2; text-decoration: none; }
+                    .btn.danger { background: #dc2626; color: #fff; border-color: #dc2626; }
+        .checkbox-group { display: grid; gap: 10px; margin-top: 10px; }
+        .checkbox-item { display: flex; gap: 10px; align-items: flex-start; padding: 10px; border: 1px solid #d8deeb; border-radius: 8px; background: #fbfcff; }
+        .checkbox-item input { width: auto; margin-top: 3px; }
+        .checkbox-title { font-weight: 600; }
+        .checkbox-meta { color: #6b7280; font-size: 13px; margin-top: 3px; }
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
         th, td { text-align: left; padding: 10px; border-bottom: 1px solid #ebeff7; font-size: 14px; vertical-align: top; }
         th { background: #f1f5fc; }
@@ -39,6 +45,7 @@
                 <button type="submit" class="btn">Run Automatic Discount Schedule</button>
             </form>
         </div>
+        <div class="muted" style="margin-top:10px;">Manual Apply activates a discount immediately on the selected products. Automatic discounts only start once their schedule window is reached.</div>
     </div>
 
     <div class="card">
@@ -49,7 +56,8 @@
                     <th>Details</th>
                     <th>Status</th>
                     <th>Products</th>
-                    <th>Manual Apply</th>
+                    <th>Immediate Apply</th>
+                        <th>Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -69,18 +77,31 @@
                     <td>
                         <form method="POST" action="{{ route('admin.discounts.apply', $discount) }}">
                             @csrf
-                            <select name="product_ids[]" multiple style="min-width:220px; max-width:320px;">
+                            <div class="checkbox-group" style="max-width: 360px;">
                                 @foreach($products as $product)
-                                    <option value="{{ $product->id }}">{{ $product->name }} ({{ $product->sku }})</option>
+                                    <label class="checkbox-item">
+                                        <input type="checkbox" name="product_ids[]" value="{{ $product->id }}">
+                                        <span>
+                                            <span class="checkbox-title">{{ $product->name }}</span>
+                                            <div class="checkbox-meta">{{ $product->sku }}</div>
+                                        </span>
+                                    </label>
                                 @endforeach
-                            </select>
-                            <div style="margin-top:8px;"><button type="submit" class="btn">Apply</button></div>
+                            </div>
+                            <div style="margin-top:8px;"><button type="submit" class="btn">Apply Immediately</button></div>
+                        </form>
+                    </td>
+                    <td>
+                        <form method="POST" action="{{ route('admin.discounts.destroy', $discount) }}" onsubmit="return confirm('Are you sure you want to delete this discount? All product associations will be removed.');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn danger">Delete</button>
                         </form>
                     </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="5">No discounts yet.</td>
+                        <td colspan="6">No discounts yet.</td>
                 </tr>
             @endforelse
             </tbody>
