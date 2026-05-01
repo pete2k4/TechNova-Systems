@@ -56,7 +56,6 @@
                     <th>Details</th>
                     <th>Status</th>
                     <th>Products</th>
-                    <th>Immediate Apply</th>
                         <th>Actions</th>
                 </tr>
             </thead>
@@ -75,23 +74,6 @@
                     <td>{{ $discount->is_active ? 'Active' : 'Inactive' }}</td>
                     <td>{{ $discount->products_count }}</td>
                     <td>
-                        <form method="POST" action="{{ route('admin.discounts.apply', $discount) }}">
-                            @csrf
-                            <div class="checkbox-group" style="max-width: 360px;">
-                                @foreach($products as $product)
-                                    <label class="checkbox-item">
-                                        <input type="checkbox" name="product_ids[]" value="{{ $product->id }}">
-                                        <span>
-                                            <span class="checkbox-title">{{ $product->name }}</span>
-                                            <div class="checkbox-meta">{{ $product->sku }}</div>
-                                        </span>
-                                    </label>
-                                @endforeach
-                            </div>
-                            <div style="margin-top:8px;"><button type="submit" class="btn">Apply Immediately</button></div>
-                        </form>
-                    </td>
-                    <td>
                         <form method="POST" action="{{ route('admin.discounts.destroy', $discount) }}" onsubmit="return confirm('Are you sure you want to delete this discount? All product associations will be removed.');">
                             @csrf
                             @method('DELETE')
@@ -101,7 +83,7 @@
                 </tr>
             @empty
                 <tr>
-                        <td colspan="6">No discounts yet.</td>
+                        <td colspan="5">No discounts yet.</td>
                 </tr>
             @endforelse
             </tbody>

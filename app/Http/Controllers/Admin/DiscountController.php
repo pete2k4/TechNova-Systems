@@ -19,11 +19,8 @@ class DiscountController extends Controller
             ->orderByDesc('created_at')
             ->paginate(15);
 
-        $products = Product::query()->orderBy('name')->get(['id', 'name', 'sku']);
-
         return view('admin.discounts.index', [
             'discounts' => $discounts,
-            'products' => $products,
         ]);
     }
 
