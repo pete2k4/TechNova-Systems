@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use App\Contracts\OrderRepositoryInterface;
 use App\Factories\OrderRepositoryFactory;
+use App\Bootstrap\InitializeServiceRegistry;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Initialize the Singleton ServiceRegistry with critical services
+        InitializeServiceRegistry::bootstrap();
     }
 }
