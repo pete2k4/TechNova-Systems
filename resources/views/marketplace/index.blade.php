@@ -1,19 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NovaTech Marketplace - Tech Products & Software</title>
+@extends('layouts.app')
+
+@section('title', 'NovaTech Marketplace - Tech Products & Software')
+
+@section('content')
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; }
-        .navbar { background: white; padding: 20px 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .navbar-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-        .navbar a { text-decoration: none; color: #333; font-weight: 600; margin: 0 20px; }
-        .navbar a:hover { color: #3498db; }
-        .cart-badge { background: #e74c3c; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; margin-left: 5px; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
-        h1 { margin-bottom: 40px; color: #2c3e50; }
+        .mp-container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        h1 { font-size: 32px; font-weight: bold; margin-bottom: 40px; color: #2c3e50; }
         .categories { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-bottom: 40px; }
         .category-card { background: white; padding: 20px; border-radius: 8px; text-align: center; text-decoration: none; color: #333; border: 2px solid transparent; transition: all 0.2s; }
         .category-card:hover { border-color: #3498db; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
@@ -38,35 +30,8 @@
         .pagination a, .pagination span { padding: 10px 15px; border-radius: 4px; text-decoration: none; color: #3498db; background: white; border: 1px solid #ecf0f1; }
         .pagination .active { background: #3498db; color: white; }
     </style>
-</head>
-<body>
-    <div class="navbar">
-        <div class="navbar-content">
-            <h2><a href="{{ route('marketplace.index') }}" style="color: #3498db; margin: 0;">&#x1F6EA; NovaTech</a></h2>
-            <div style="display: flex; align-items: center; gap: 20px;">
-                <a href="{{ route('marketplace.index') }}">Home</a>
-                <a href="{{ route('marketplace.cart') }}">Cart
-                    @if(count(session('cart', [])) > 0)
-                        <span class="cart-badge">{{ count(session('cart', [])) }}</span>
-                    @endif
-                </a>
-                @if(!auth()->check())
-                    <a href="{{ route('login') }}" style="background: #3498db; color: white; padding: 10px 20px; border-radius: 4px; font-weight: 600;">Login</a>
-                @else
-                    <span style="color: #555; font-weight: 600;">{{ auth()->user()->name }}</span>
-                    @if(auth()->user()->isAdmin())
-                        <a href="{{ route('admin.dashboard') }}" style="background: #27ae60; color: white; padding: 10px 20px; border-radius: 4px; font-weight: 600;">Admin</a>
-                    @endif
-                    <form method="POST" action="{{ route('logout') }}" style="display: inline;">
-                        @csrf
-                        <button type="submit" style="background: none; border: none; color: #e74c3c; font-weight: 600; cursor: pointer;">Logout</button>
-                    </form>
-                @endif
-            </div>
-        </div>
-    </div>
 
-    <div class="container">
+    <div class="mp-container">
         <h1>&#x2728; Welcome to NovaTech Marketplace</h1>
         
         <h3 style="margin-bottom: 15px; color: #555;">Browse by Category</h3>
@@ -139,5 +104,4 @@
             </div>
         @endif
     </div>
-</body>
-</html>
+@endsection

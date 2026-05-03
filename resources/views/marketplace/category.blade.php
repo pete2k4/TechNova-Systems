@@ -1,18 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $category->name }} - NovaTech Marketplace</title>
+@extends('layouts.app')
+
+@section('title', $category->name . ' - NovaTech Marketplace')
+
+@section('content')
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; }
-        .navbar { background: white; padding: 20px 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .navbar-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-        .navbar a { text-decoration: none; color: #333; font-weight: 600; margin: 0 20px; }
-        .navbar a:hover { color: #3498db; }
-        .cart-badge { background: #e74c3c; color: white; padding: 4px 8px; border-radius: 12px; font-size: 12px; margin-left: 5px; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        .cat-container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
         .breadcrumb { margin-bottom: 30px; color: #7f8c8d; }
         .breadcrumb a { color: #3498db; text-decoration: none; }
         .breadcrumb a:hover { text-decoration: underline; }
@@ -32,23 +24,8 @@
         .product-link { display: inline-block; color: #3498db; text-decoration: none; font-size: 14px; font-weight: 600; }
         .product-link:hover { text-decoration: underline; }
     </style>
-</head>
-<body>
-    <div class="navbar">
-        <div class="navbar-content">
-            <h2><a href="{{ route('marketplace.index') }}" style="color: #3498db; margin: 0;">🏪 NovaTech</a></h2>
-            <div>
-                <a href="{{ route('marketplace.index') }}">Home</a>
-                <a href="{{ route('marketplace.cart') }}">Cart
-                    @if(count(session('cart', [])) > 0)
-                        <span class="cart-badge">{{ count(session('cart', [])) }}</span>
-                    @endif
-                </a>
-            </div>
-        </div>
-    </div>
 
-    <div class="container">
+    <div class="cat-container">
         <div class="breadcrumb">
             <a href="{{ route('marketplace.index') }}">Home</a> / <strong>{{ $category->name }}</strong>
         </div>
@@ -109,5 +86,4 @@
             </div>
         @endif
     </div>
-</body>
-</html>
+@endsection

@@ -1,17 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Checkout - NovaTech</title>
+@extends('layouts.app')
+
+@section('title', 'Checkout - NovaTech')
+
+@section('content')
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; }
-        .navbar { background: white; padding: 20px 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .navbar-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-        .navbar a { text-decoration: none; color: #333; font-weight: 600; margin: 0 20px; }
-        .navbar a:hover { color: #3498db; }
-        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+        .chk-container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
         h1 { margin-bottom: 30px; color: #2c3e50; }
         .checkout-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
         .checkout-form { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
@@ -39,19 +32,8 @@
             .order-summary { position: static; }
         }
     </style>
-</head>
-<body>
-    <div class="navbar">
-        <div class="navbar-content">
-            <h2><a href="{{ route('marketplace.index') }}" style="color: #3498db; margin: 0;">🏪 NovaTech</a></h2>
-            <div>
-                <a href="{{ route('marketplace.index') }}">Home</a>
-                <a href="{{ route('marketplace.cart') }}">Cart</a>
-            </div>
-        </div>
-    </div>
 
-    <div class="container">
+    <div class="chk-container">
         <h1>💳 Checkout</h1>
 
         <form method="POST" action="{{ route('checkout.process') }}" class="checkout-layout">
@@ -141,5 +123,4 @@
             </div>
         </form>
     </div>
-</body>
-</html>
+@endsection

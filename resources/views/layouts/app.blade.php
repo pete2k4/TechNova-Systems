@@ -35,6 +35,9 @@
                 </a>
                 <a href="{{ route('marketplace.cart') }}" class="text-gray-600 hover:text-gray-900">
                     Cart
+                    @if(count(session('cart', [])) > 0)
+                        <span class="bg-red-600 text-white text-xs px-2 py-1 rounded-full ml-1">{{ count(session('cart', [])) }}</span>
+                    @endif
                 </a>
 
                 @auth

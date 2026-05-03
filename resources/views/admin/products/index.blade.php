@@ -26,12 +26,23 @@
 </head>
 <body>
 <div class="wrap">
-    <div class="nav" style="margin-bottom: 12px;">
-        <a href="{{ route('admin.products.index') }}">Products</a>
-        <a href="{{ route('admin.discounts.index') }}">Discounts</a>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <h1 style="margin: 0;">Admin Dashboard</h1>
+        <a href="{{ route('home') }}" style="background: #27ae60; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-block;">← Back to Store</a>
     </div>
 
-    <h1 style="margin-top: 0;">Admin Products</h1>
+    <div style="display: flex; gap: 12px; margin-bottom: 24px;">
+        <a href="{{ route('admin.products.index') }}" style="background: #3498db; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+            <span style="font-size: 18px;">📦</span>
+            <span>Products</span>
+        </a>
+        <a href="{{ route('admin.discounts.index') }}" style="background: #9b59b6; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+            <span style="font-size: 18px;">🏷️</span>
+            <span>Discounts</span>
+        </a>
+    </div>
+
+    <h2 style="margin-top: 0;">Products</h2>
 
     @if(session('status'))
         <div class="card" style="background:#edf7ed; border:1px solid #cde8cd; margin-bottom:12px;">{{ session('status') }}</div>

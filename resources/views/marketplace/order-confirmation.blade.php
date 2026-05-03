@@ -1,17 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Order Confirmation - NovaTech</title>
+@extends('layouts.app')
+
+@section('title', 'Order Confirmation - NovaTech')
+
+@section('content')
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; }
-        .navbar { background: white; padding: 20px 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
-        .navbar-content { max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-        .navbar a { text-decoration: none; color: #333; font-weight: 600; margin: 0 20px; }
-        .navbar a:hover { color: #3498db; }
-        .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
+        .ord-container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
         .confirmation { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden; }
         .confirmation-header { background: #27ae60; color: white; padding: 40px; text-align: center; }
         .confirmation-header h1 { font-size: 36px; margin-bottom: 10px; }
@@ -42,18 +35,8 @@
         .btn-secondary { background: #95a5a6; color: white; }
         .btn-secondary:hover { background: #7f8c8d; }
     </style>
-</head>
-<body>
-    <div class="navbar">
-        <div class="navbar-content">
-            <h2><a href="{{ route('marketplace.index') }}" style="color: #3498db; margin: 0;">🏪 NovaTech</a></h2>
-            <div>
-                <a href="{{ route('marketplace.index') }}">Home</a>
-            </div>
-        </div>
-    </div>
 
-    <div class="container">
+    <div class="ord-container">
         <div class="confirmation">
             <div class="confirmation-header">
                 <h1>✅ Order Confirmed!</h1>
@@ -155,5 +138,4 @@
             </div>
         </div>
     </div>
-</body>
-</html>
+@endsection
