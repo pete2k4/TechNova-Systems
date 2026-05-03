@@ -13,18 +13,6 @@ use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
-    public function __construct()
-    {
-        $user = request()->getUser();
-        $pass = request()->getPassword();
-        $envUser = env('ADMIN_USER', 'admin');
-        $envPass = env('ADMIN_PASS', 'password');
-
-        if (! ($user === $envUser && $pass === $envPass)) {
-            abort(response('Unauthorized', 401, ['WWW-Authenticate' => 'Basic realm="Admin Area"']));
-        }
-    }
-
     public function index(Request $request)
     {
         $query = Product::query()->with([

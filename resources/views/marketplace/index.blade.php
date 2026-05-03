@@ -43,13 +43,26 @@
     <div class="navbar">
         <div class="navbar-content">
             <h2><a href="{{ route('marketplace.index') }}" style="color: #3498db; margin: 0;">&#x1F6EA; NovaTech</a></h2>
-            <div>
+            <div style="display: flex; align-items: center; gap: 20px;">
                 <a href="{{ route('marketplace.index') }}">Home</a>
                 <a href="{{ route('marketplace.cart') }}">Cart
                     @if(count(session('cart', [])) > 0)
                         <span class="cart-badge">{{ count(session('cart', [])) }}</span>
                     @endif
                 </a>
+                @if(!auth()->check())
+                    <a href="{{ route('register') }}" style="background: #27ae60; color: white; padding: 10px 20px; border-radius: 4px; font-weight: 600;">Sign Up</a>
+                    <a href="{{ route('login') }}" style="background: #3498db; color: white; padding: 10px 20px; border-radius: 4px; font-weight: 600;">Sign In</a>
+                @else
+                    <span style="color: #555; font-weight: 600;">{{ auth()->user()->name }}</span>
+                    @if(auth()->user()->isAdmin())
+                        <a href="{{ route('admin.dashboard') }}" style="background: #27ae60; color: white; padding: 10px 20px; border-radius: 4px; font-weight: 600;">Admin</a>
+                    @endif
+                    <form method="POST" action="{{ route('logout') }}" style="display: inline;">
+                        @csrf
+                        <button type="submit" style="background: none; border: none; color: #e74c3c; font-weight: 600; cursor: pointer;">Logout</button>
+                    </form>
+                @endif
             </div>
         </div>
     </div>

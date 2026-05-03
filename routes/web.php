@@ -3,12 +3,21 @@
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\HelloWorldController;
 use App\Http\Controllers\MarketplaceController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\LogoutController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [MarketplaceController::class, 'index'])->name('home');
 
 Route::get('/home', [HelloWorldController::class, 'home']);
 Route::get('/helloWorld', [HelloWorldController::class, 'helloWorld']);
+
+// Auth Routes
+Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [LoginController::class, 'login'])->name('login.submit');
+Route::post('/logout', [LogoutController::class, 'logout'])->name('logout');
+Route::get('/register', [App\Http\Controllers\Auth\RegisterController::class, 'showRegistrationForm'])->name('register');
+Route::post('/register', [App\Http\Controllers\Auth\RegisterController::class, 'register'])->name('register.submit');
 
 Route::prefix('marketplace')->group(function (): void {
     Route::get('/', [MarketplaceController::class, 'index'])->name('marketplace.index');
@@ -26,7 +35,8 @@ Route::view('/checkout/payment-placeholder/{orderId}', 'checkout.payment-placeho
     ->whereNumber('orderId')
     ->name('checkout.payment-placeholder');
 
-Route::prefix('admin')->name('admin.')->group(function (): void {
+// Admin Routes - Protected by authentication and admin role
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'is.admin'])->group(function (): void {
     Route::get('/', [App\Http\Controllers\Admin\ProductController::class, 'index'])->name('dashboard');
     Route::get('/products', [App\Http\Controllers\Admin\ProductController::class, 'index'])->name('products.index');
     Route::get('/products/create', [App\Http\Controllers\Admin\ProductController::class, 'create'])->name('products.create');
@@ -39,6 +49,6 @@ Route::prefix('admin')->name('admin.')->group(function (): void {
     Route::get('/discounts/create', [App\Http\Controllers\Admin\DiscountController::class, 'create'])->name('discounts.create');
     Route::post('/discounts', [App\Http\Controllers\Admin\DiscountController::class, 'store'])->name('discounts.store');
     Route::post('/discounts/{discount}/apply', [App\Http\Controllers\Admin\DiscountController::class, 'apply'])->name('discounts.apply');
-        Route::delete('/discounts/{discount}', [App\Http\Controllers\Admin\DiscountController::class, 'destroy'])->name('discounts.destroy');
+    Route::delete('/discounts/{discount}', [App\Http\Controllers\Admin\DiscountController::class, 'destroy'])->name('discounts.destroy');
     Route::post('/discounts/run-schedule', [App\Http\Controllers\Admin\DiscountController::class, 'runSchedule'])->name('discounts.run-schedule');
 });
