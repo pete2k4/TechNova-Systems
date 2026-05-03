@@ -28,6 +28,7 @@ class ProductSeeder extends Seeder
                 'type' => 'digital',
                 'sku' => 'WIN11PRO-001',
                 'stock' => null,
+                'image_url' => 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400&h=400&fit=crop',
             ],
             [
                 'category_id' => $softwareCategory->id,
@@ -38,6 +39,7 @@ class ProductSeeder extends Seeder
                 'type' => 'digital',
                 'sku' => 'OFFICE365-001',
                 'stock' => null,
+                'image_url' => 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&h=400&fit=crop',
             ],
             [
                 'category_id' => $ebookCategory->id,
@@ -48,6 +50,7 @@ class ProductSeeder extends Seeder
                 'type' => 'digital',
                 'sku' => 'COURSE-PHP-001',
                 'stock' => null,
+                'image_url' => 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400&h=400&fit=crop',
             ],
             [
                 'category_id' => $ebookCategory->id,
@@ -58,6 +61,7 @@ class ProductSeeder extends Seeder
                 'type' => 'digital',
                 'sku' => 'EBOOK-BUNDLE-001',
                 'stock' => null,
+                'image_url' => 'https://images.unsplash.com/photo-1507842072343-583f20270319?w=400&h=400&fit=crop',
             ],
 
             // Physical Products
@@ -70,6 +74,7 @@ class ProductSeeder extends Seeder
                 'type' => 'physical',
                 'sku' => 'GPU-RTX4090-001',
                 'stock' => 5,
+                'image_url' => 'https://images.unsplash.com/photo-1591290619762-8b2f0aa59c47?w=400&h=400&fit=crop',
             ],
             [
                 'category_id' => $hardwareCategory->id,
@@ -80,6 +85,7 @@ class ProductSeeder extends Seeder
                 'type' => 'physical',
                 'sku' => 'CPU-I9-13900K-001',
                 'stock' => 8,
+                'image_url' => 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=400&fit=crop',
             ],
             [
                 'category_id' => $hardwareCategory->id,
@@ -90,6 +96,7 @@ class ProductSeeder extends Seeder
                 'type' => 'physical',
                 'sku' => 'SSD-990PRO-4TB-001',
                 'stock' => 12,
+                'image_url' => 'https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?w=400&h=400&fit=crop',
             ],
             [
                 'category_id' => $networkingCategory->id,
@@ -100,6 +107,7 @@ class ProductSeeder extends Seeder
                 'type' => 'physical',
                 'sku' => 'ROUTER-NIGHTHAWK-001',
                 'stock' => 6,
+                'image_url' => 'https://images.unsplash.com/photo-1559056199-641a0ac8b3f4?w=400&h=400&fit=crop',
             ],
             [
                 'category_id' => $networkingCategory->id,
@@ -110,6 +118,7 @@ class ProductSeeder extends Seeder
                 'type' => 'physical',
                 'sku' => 'CABLE-CAT8-100FT-001',
                 'stock' => 25,
+                'image_url' => 'https://images.unsplash.com/photo-1621905167918-48416bd8575a?w=400&h=400&fit=crop',
             ],
             [
                 'category_id' => $hardwareCategory->id,
@@ -120,6 +129,7 @@ class ProductSeeder extends Seeder
                 'type' => 'physical',
                 'sku' => 'RAM-DDR5-32GB-001',
                 'stock' => 15,
+                'image_url' => 'https://images.unsplash.com/photo-1567163706341-613a5b80a0d5?w=400&h=400&fit=crop',
             ],
         ];
 
