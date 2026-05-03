@@ -51,8 +51,7 @@
                     @endif
                 </a>
                 @if(!auth()->check())
-                    <a href="{{ route('register') }}" style="background: #27ae60; color: white; padding: 10px 20px; border-radius: 4px; font-weight: 600;">Sign Up</a>
-                    <a href="{{ route('login') }}" style="background: #3498db; color: white; padding: 10px 20px; border-radius: 4px; font-weight: 600;">Sign In</a>
+                    <a href="{{ route('login') }}" style="background: #3498db; color: white; padding: 10px 20px; border-radius: 4px; font-weight: 600;">Login</a>
                 @else
                     <span style="color: #555; font-weight: 600;">{{ auth()->user()->name }}</span>
                     @if(auth()->user()->isAdmin())
