@@ -29,11 +29,19 @@ Route::prefix('marketplace')->group(function (): void {
     Route::post('/cart/clear', [MarketplaceController::class, 'clearCart'])->name('marketplace.clearCart');
 });
 
-Route::get('/checkout', [CheckoutController::class, 'showCheckout'])->name('checkout.show-checkout');
-Route::post('/checkout/process', [CheckoutController::class, 'process'])->name('checkout.process');
+Route::get('/checkout', [CheckoutController::class, 'showCheckout'])
+    ->middleware('auth')
+    ->name('checkout.show-checkout');
+Route::post('/checkout/process', [CheckoutController::class, 'process'])
+    ->middleware('auth')
+    ->name('checkout.process');
 Route::view('/checkout/payment-placeholder/{orderId}', 'checkout.payment-placeholder')
     ->whereNumber('orderId')
     ->name('checkout.payment-placeholder');
+
+Route::get('/orders', [App\Http\Controllers\OrderController::class, 'index'])
+    ->middleware('auth')
+    ->name('orders.index');
 
 // Admin Routes - Protected by authentication and admin role
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'is.admin'])->group(function (): void {
@@ -51,4 +59,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'is.admin'])->group(
     Route::post('/discounts/{discount}/apply', [App\Http\Controllers\Admin\DiscountController::class, 'apply'])->name('discounts.apply');
     Route::delete('/discounts/{discount}', [App\Http\Controllers\Admin\DiscountController::class, 'destroy'])->name('discounts.destroy');
     Route::post('/discounts/run-schedule', [App\Http\Controllers\Admin\DiscountController::class, 'runSchedule'])->name('discounts.run-schedule');
+
+    Route::get('/orders', [App\Http\Controllers\Admin\OrderController::class, 'index'])->name('orders.index');
 });

@@ -20,6 +20,7 @@ class UserSeeder extends Seeder
                 'email' => 'admin@technova.com',
                 'password' => 'admin',
                 'role' => 'admin',
+                'balance' => 5000,
             ]
         );
 
@@ -30,6 +31,7 @@ class UserSeeder extends Seeder
                 'name' => 'Test User',
                 'password' => 'password',
                 'role' => 'user',
+                'balance' => 5000,
             ]
         );
     }

@@ -19,6 +19,8 @@ class OrderServiceColleague
         string $paymentMethod,
         string $paymentCredential,
     ): Order {
+        $credential = $paymentMethod === 'on_delivery' ? null : $paymentCredential;
+
         $order = Order::create([
             'user_id' => $userId,
             'order_number' => 'ORD-' . strtoupper(uniqid()),
@@ -27,7 +29,7 @@ class OrderServiceColleague
             'total' => $finalTotal,
             'status' => Order::STATUS_CHECKOUT_STARTED,
             'payment_method' => $paymentMethod,
-            'payment_credential' => $paymentCredential,
+            'payment_credential' => $credential,
         ]);
 
         foreach ($cart as $item) {

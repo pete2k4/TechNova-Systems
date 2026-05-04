@@ -40,6 +40,10 @@
             <span style="font-size: 18px;">🏷️</span>
             <span>Discounts</span>
         </a>
+        <a href="{{ route('admin.orders.index') }}" style="background: #1f2937; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+            <span style="font-size: 18px;">🧾</span>
+            <span>Orders</span>
+        </a>
     </div>
 
     <h2 style="margin-top: 0;">Products</h2>

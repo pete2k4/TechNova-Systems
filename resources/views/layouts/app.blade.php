@@ -18,7 +18,7 @@
         <script src="https://cdn.tailwindcss.com"></script>
     @endif
 </head>
-<body class="bg-gray-50">
+<body class="bg-gray-50 min-h-screen flex flex-col">
     <!-- Navigation -->
     <nav class="bg-white shadow-sm">
         <div class="container mx-auto px-4 py-4 flex justify-between items-center">
@@ -41,6 +41,10 @@
                 </a>
 
                 @auth
+                    <a href="{{ route('orders.index') }}" class="text-gray-600 hover:text-gray-900">
+                        Orders
+                    </a>
+
                     @if(auth()->user()->isAdmin())
                         <a href="{{ route('admin.dashboard') }}" class="text-gray-600 hover:text-gray-900 font-semibold text-blue-600">
                             Admin
@@ -57,6 +61,9 @@
                     <span class="text-gray-700">
                         {{ auth()->user()->name }}
                     </span>
+                    <span class="text-gray-500">
+                        Balance: ${{ number_format((float) auth()->user()->balance, 2) }}
+                    </span>
                 @else
                     <a href="{{ route('login') }}" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
                         Login
@@ -67,12 +74,12 @@
     </nav>
 
     <!-- Main Content -->
-    <main class="py-8">
+    <main class="py-8 flex-1">
         @yield('content')
     </main>
 
     <!-- Footer -->
-    <footer class="bg-white border-t border-gray-200 mt-12">
+    <footer class="bg-white border-t border-gray-200 mt-12 mt-auto">
         <div class="container mx-auto px-4 py-8 text-center text-gray-600">
             <p>&copy; 2026 TechNova Systems. All rights reserved.</p>
         </div>

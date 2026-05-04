@@ -7,6 +7,7 @@ namespace App\Services\Checkout\Template;
 use App\Services\Checkout\CheckoutContext;
 use App\Services\Checkout\CheckoutMediator;
 use App\Services\CheckoutService;
+use App\Models\User;
 use RuntimeException;
 
 abstract class BaseCheckoutFlow
@@ -31,9 +32,11 @@ abstract class BaseCheckoutFlow
             'type' => $validated['discount_type'],
             'value' => (float) $validated['discount_value'],
         ];
+        $paymentCredential = (string) ($validated['payment_credential'] ?? '');
+
         $paymentData = [
             'type' => $validated['payment_type'],
-            'credential' => $validated['payment_credential'],
+            'credential' => $paymentCredential,
         ];
 
         $checkoutService = new CheckoutService($this->productType());
@@ -61,13 +64,35 @@ abstract class BaseCheckoutFlow
             discountAmount: $discountAmount,
             finalTotal: $finalTotal,
             paymentMethod: $validated['payment_type'],
-            paymentCredential: $validated['payment_credential'],
+            paymentCredential: $paymentCredential,
         );
-        $paymentPlaceholderPath = $mediator->paymentPlaceholderPath($order);
+
+        $requiresBalance = $paymentData['type'] !== 'on_delivery';
+        $user = null;
+
+        if ($requiresBalance) {
+            $user = User::query()->find($userId);
+
+            if ($user === null) {
+                $order->markCanceled();
+                throw new RuntimeException('Checkout failed: user account is missing.');
+            }
+
+            if ((float) $user->balance < $finalTotal) {
+                $order->markCanceled();
+                throw new RuntimeException('Checkout failed: insufficient account balance.');
+            }
+        }
+
+        $paymentPlaceholderPath = $requiresBalance ? $mediator->paymentPlaceholderPath($order) : '';
 
         if (!$paymentStrategy->process($finalTotal)) {
             $order->markCanceled();
             throw new RuntimeException('Checkout failed: payment strategy rejected the transaction.');
+        }
+
+        if ($requiresBalance && $user !== null) {
+            $user->decrement('balance', $finalTotal);
         }
 
         $order->markPlaced();

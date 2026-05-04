@@ -14,13 +14,15 @@ class ValidateCheckoutModeHandler extends AbstractCheckoutHandler
      */
     public function handle(array $cart, array $validated): void
     {
-        $supportedPaymentTypes = ['credit_card', 'paypal'];
+        $supportedPaymentTypes = ['credit_card', 'paypal', 'on_delivery'];
 
         if (!in_array($validated['payment_type'], $supportedPaymentTypes, true)) {
             throw new RuntimeException('Payment type is not supported.');
         }
 
-        if (trim($validated['payment_credential']) === '') {
+        $paymentCredential = trim((string) ($validated['payment_credential'] ?? ''));
+
+        if ($validated['payment_type'] !== 'on_delivery' && $paymentCredential === '') {
             throw new RuntimeException('Payment credential is required.');
         }
 

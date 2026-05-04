@@ -36,30 +36,27 @@
     <div class="chk-container">
         <h1>💳 Checkout</h1>
 
+        @if(session('error'))
+            <div style="background: #fdecea; color: #b42318; border: 1px solid #f5c2c7; padding: 12px 16px; border-radius: 6px; margin-bottom: 20px;">
+                {{ session('error') }}
+            </div>
+        @endif
+
+        @if($errors->any())
+            <div style="background: #fff7ed; color: #9a3412; border: 1px solid #fed7aa; padding: 12px 16px; border-radius: 6px; margin-bottom: 20px;">
+                <strong>Please fix the following:</strong>
+                <ul style="margin: 8px 0 0 18px;">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
         <form method="POST" action="{{ route('checkout.process') }}" class="checkout-layout">
             @csrf
 
             <div class="checkout-form">
-                <div class="form-section">
-                    <h3>Discount</h3>
-                    
-                    <div class="form-group">
-                        <label for="discount_type">Discount Type</label>
-                        <select name="discount_type" id="discount_type" required>
-                            <option value="">-- No Discount --</option>
-                            <option value="percentage">Percentage (%)</option>
-                            <option value="fixed">Fixed Amount ($)</option>
-                        </select>
-                        <div class="form-hint">Optional: Apply a discount code or coupon</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="discount_value">Discount Value</label>
-                        <input type="number" name="discount_value" id="discount_value" min="0" step="0.01" value="0" placeholder="0">
-                        <div class="form-hint">Enter percentage or dollar amount</div>
-                    </div>
-                </div>
-
                 <div class="form-section">
                     <h3>Payment Information</h3>
 
@@ -67,16 +64,17 @@
                         <label for="payment_type">Payment Method</label>
                         <select name="payment_type" id="payment_type" required>
                             <option value="">-- Select Payment Method --</option>
-                            <option value="credit_card">Credit Card</option>
-                            <option value="paypal">PayPal</option>
+                            <option value="credit_card" @selected(old('payment_type') === 'credit_card')>Credit Card</option>
+                            <option value="paypal" @selected(old('payment_type') === 'paypal')>PayPal</option>
+                            <option value="on_delivery" @selected(old('payment_type') === 'on_delivery')>On Delivery</option>
                         </select>
                         <div class="form-hint">Choose how you'll pay</div>
                     </div>
 
                     <div class="form-group">
                         <label for="payment_credential">Payment Details</label>
-                        <input type="text" name="payment_credential" id="payment_credential" placeholder="Card number or PayPal email" required>
-                        <div class="form-hint">Demo only - no real charges</div>
+                        <input type="text" name="payment_credential" id="payment_credential" placeholder="Card number or PayPal email" value="{{ old('payment_credential') }}">
+                        <div class="form-hint">Required for credit card or PayPal. On delivery skips the virtual charge.</div>
                     </div>
                 </div>
 
@@ -106,10 +104,6 @@
                 <div class="summary-row">
                     <span>Subtotal</span>
                     <span>${{ number_format($subtotal, 2) }}</span>
-                </div>
-                <div class="summary-row">
-                    <span>Discount</span>
-                    <span>-$0.00</span>
                 </div>
                 <div class="summary-row total">
                     <span>Total</span>

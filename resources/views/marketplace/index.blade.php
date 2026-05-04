@@ -10,7 +10,7 @@
         .category-card { background: white; padding: 20px; border-radius: 8px; text-align: center; text-decoration: none; color: #333; border: 2px solid transparent; transition: all 0.2s; }
         .category-card:hover { border-color: #3498db; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
         .products { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
-        .product-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s; }
+        .product-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s; text-decoration: none; color: inherit; display: block; cursor: pointer; }
         .product-card:hover { transform: translateY(-4px); box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
         .product-media { background: #f0f0f0; height: 180px; display: flex; align-items: center; justify-content: center; }
         .product-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -53,7 +53,7 @@
         <h3 style="margin: 40px 0 20px 0; color: #555;">Featured Products</h3>
         <div class="products">
             @forelse($products as $product)
-                <div class="product-card">
+                <a href="{{ route('marketplace.product', $product->slug) }}" class="product-card">
                     <div class="product-media">
                         @if(!empty($product->image_url))
                             <img src="{{ $product->image_url }}" alt="{{ $product->name }}">
@@ -62,9 +62,9 @@
                         @endif
                     </div>
                     <div class="product-info">
-                        <a href="{{ route('marketplace.product', $product->slug) }}" class="product-name" style="text-decoration: none; color: #2c3e50; display: block;">
+                        <div class="product-name">
                             {{ $product->name }}
-                        </a>
+                        </div>
                         <div class="product-type">
                             <span class="product-type-badge">
                                 @if($product->isDigital()) DIGITAL @else PHYSICAL @endif
@@ -90,9 +90,9 @@
                                 @endif
                             </div>
                         @endif
-                        <a href="{{ route('marketplace.product', $product->slug) }}" class="product-link">View Details &#x2192;</a>
+                        <span class="product-link">View Details &#x2192;</span>
                     </div>
-                </div>
+                </a>
             @empty
                 <p style="grid-column: 1/-1; text-align: center; color: #7f8c8d;">No products found</p>
             @endforelse

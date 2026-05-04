@@ -49,12 +49,6 @@
                     <code>{{ $order->order_number }}</code>
                 </div>
 
-                <div class="factory-info">
-                    <p><strong>🏭 Factory Pattern in Action:</strong></p>
-                    <p>This order was processed using: <strong>{{ $factoryClass }}</strong></p>
-                    <p style="margin-top: 8px; font-size: 13px;">Family: {{ $factoryName }}</p>
-                </div>
-
                 <h3 class="section-title">Order Items</h3>
                 <table class="order-items">
                     <thead>
@@ -109,31 +103,8 @@
                     </div>
                 </div>
 
-                <h3 class="section-title">What's Next?</h3>
-                <div style="background: #f9f9f9; padding: 15px; border-radius: 8px; line-height: 1.6; color: #555; margin-bottom: 30px;">
-                    @if(!empty($paymentPlaceholderPath ?? null))
-                        <p>💳 <strong>Payment redirect simulation is available:</strong> <a href="{{ $paymentPlaceholderPath }}">Still working on payment integration</a></p>
-                    @endif
-
-                    @php
-                        $hasPhysical = $order->items->some(fn($item) => $item->product->isPhysical());
-                        $hasDigital = $order->items->some(fn($item) => $item->product->isDigital());
-                    @endphp
-
-                    @if($hasDigital)
-                        <p>✓ <strong>Digital products are ready now!</strong> Check your email for download links and license keys.</p>
-                    @endif
-
-                    @if($hasPhysical)
-                        <p style="margin-top: 8px;">📦 <strong>Physical items will ship within 2-3 business days.</strong> You'll receive a tracking number via email.</p>
-                    @endif
-
-                    <p style="margin-top: 8px;">📧 A confirmation email has been sent to your account.</p>
-                </div>
-
                 <div class="action-buttons">
                     <a href="{{ route('marketplace.index') }}" class="btn-primary">← Continue Shopping</a>
-                    <a href="#" class="btn-secondary">Download Invoice (Coming Soon)</a>
                 </div>
             </div>
         </div>

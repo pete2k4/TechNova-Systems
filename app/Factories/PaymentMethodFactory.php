@@ -6,6 +6,7 @@ namespace App\Factories;
 
 use App\Contracts\PaymentMethodInterface;
 use App\Services\Payment\CreditCardPayment;
+use App\Services\Payment\OnDeliveryPayment;
 use App\Services\Payment\PayPalPayment;
 use InvalidArgumentException;
 
@@ -13,6 +14,7 @@ class PaymentMethodFactory
 {
     public const CREDIT_CARD = 'credit_card';
     public const PAYPAL = 'paypal';
+    public const ON_DELIVERY = 'on_delivery';
 
     /**
      * @param string $type
@@ -22,13 +24,10 @@ class PaymentMethodFactory
      */
     public static function create(string $type, string $credential): PaymentMethodInterface
     {
-        if (empty($credential)) {
-            throw new InvalidArgumentException('Payment credential cannot be empty');
-        }
-
         return match (strtolower($type)) {
             self::CREDIT_CARD => self::createCreditCardPayment($credential),
             self::PAYPAL => self::createPayPalPayment($credential),
+            self::ON_DELIVERY => new OnDeliveryPayment(),
             default => throw new InvalidArgumentException("Unknown payment method: {$type}"),
         };
     }
@@ -40,6 +39,10 @@ class PaymentMethodFactory
      */
     public static function createCreditCardPayment(string $cardNumber): CreditCardPayment
     {
+        if ($cardNumber === '') {
+            throw new InvalidArgumentException('Payment credential cannot be empty');
+        }
+
         if (!self::isValidCardNumber($cardNumber)) {
             throw new InvalidArgumentException('Invalid credit card number format');
         }
@@ -54,6 +57,10 @@ class PaymentMethodFactory
      */
     public static function createPayPalPayment(string $email): PayPalPayment
     {
+        if ($email === '') {
+            throw new InvalidArgumentException('Payment credential cannot be empty');
+        }
+
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new InvalidArgumentException('Invalid PayPal email address');
         }

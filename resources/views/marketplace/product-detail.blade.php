@@ -30,9 +30,9 @@
         .form-group { margin-bottom: 15px; }
         label { display: block; margin-bottom: 8px; font-weight: 600; color: #2c3e50; }
         input[type="number"] { padding: 10px; border: 1px solid #bdc3c7; border-radius: 4px; width: 100px; }
-        button { background: #27ae60; color: white; padding: 15px 30px; border: none; border-radius: 4px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; width: 100%; }
-        button:hover { background: #229954; }
-        button:disabled { background: #95a5a6; cursor: not-allowed; }
+        .add-to-cart-button { background: #27ae60; color: white; padding: 15px 30px; border: none; border-radius: 4px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; width: 100%; }
+        .add-to-cart-button:hover { background: #229954; }
+        .add-to-cart-button:disabled { background: #95a5a6; cursor: not-allowed; }
         .related-section { margin-top: 60px; }
         .related-section h2 { margin-bottom: 20px; color: #2c3e50; }
         .related-products { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
@@ -101,7 +101,7 @@
                     </div>
 
                     @if($product->isPhysical() && $product->stock === 0)
-                        <button disabled>Out of Stock</button>
+                        <button class="add-to-cart-button" disabled>Out of Stock</button>
                     @else
                         <form method="POST" action="{{ route('marketplace.addToCart', $product->id) }}" class="add-to-cart-form">
                             @csrf
@@ -109,7 +109,7 @@
                                 <label for="quantity">Quantity</label>
                                 <input type="number" id="quantity" name="quantity" value="1" min="1" max="{{ $product->isPhysical() ? $product->stock : 100 }}" required>
                             </div>
-                            <button type="submit">&#x1F6D2; Add to Cart</button>
+                            <button class="add-to-cart-button" type="submit">&#x1F6D2; Add to Cart</button>
                         </form>
                     @endif
 
