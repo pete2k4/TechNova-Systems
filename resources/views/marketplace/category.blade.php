@@ -10,6 +10,11 @@
         .breadcrumb a:hover { text-decoration: underline; }
         h1 { margin-bottom: 10px; color: #2c3e50; }
         .category-description { color: #7f8c8d; margin-bottom: 30px; }
+        .categories { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; margin: 20px 0 40px; }
+        .category-card { background: white; padding: 16px; border-radius: 8px; text-align: center; text-decoration: none; color: #333; border: 2px solid transparent; transition: all 0.2s; font-weight: 600; }
+        .category-icon { font-size: 22px; margin-bottom: 6px; }
+        .category-card:hover { border-color: #3498db; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .category-card.active { border-color: #2c3e50; box-shadow: 0 4px 12px rgba(44, 62, 80, 0.15); }
         .products { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; }
         .product-card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); transition: transform 0.2s; text-decoration: none; color: inherit; display: block; cursor: pointer; }
         .product-card:hover { transform: translateY(-4px); box-shadow: 0 4px 16px rgba(0,0,0,0.15); }
@@ -32,6 +37,34 @@
 
         <h1>{{ $category->name }}</h1>
         <p class="category-description">{{ $category->description }}</p>
+
+        <h3 style="margin: 10px 0 10px; color: #555;">Browse other categories</h3>
+        <div class="categories">
+            <a href="{{ route('marketplace.index') }}" class="category-card">
+                <div class="category-icon">&#x1F31F;</div>
+                <div>All Products</div>
+            </a>
+            @foreach($categories as $categoryItem)
+                <a href="{{ route('marketplace.category', $categoryItem->slug) }}" class="category-card{{ $categoryItem->id === $category->id ? ' active' : '' }}">
+                    <div class="category-icon">
+                        @if($categoryItem->slug === 'software-licenses')
+                            &#x1F4BF;
+                        @elseif($categoryItem->slug === 'ebooks-courses')
+                            &#x1F4DA;
+                        @elseif($categoryItem->slug === 'computer-hardware')
+                            &#x1F5A5;
+                        @elseif($categoryItem->slug === 'networking-equipment')
+                            &#x1F310;
+                        @elseif($categoryItem->slug === 'accessories-peripherals')
+                            &#x1F3A7;
+                        @else
+                            &#x1F527;
+                        @endif
+                    </div>
+                    <div>{{ $categoryItem->name }}</div>
+                </a>
+            @endforeach
+        </div>
 
         <div class="products">
             @forelse($products as $product)

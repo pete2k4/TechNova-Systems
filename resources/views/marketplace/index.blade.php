@@ -43,7 +43,19 @@
             @foreach($categories as $category)
                 <a href="{{ route('marketplace.category', $category->slug) }}" class="category-card">
                     <div style="font-size: 24px; margin-bottom: 8px;">
-                        @if($category->id === 1) &#x1F4BF; @elseif($category->id === 2) &#x1F4DA; @elseif($category->id === 3) &#x1F5A5; @elseif($category->id === 4) &#x1F310; @else &#x1F527; @endif
+                        @if($category->slug === 'software-licenses')
+                            &#x1F4BF;
+                        @elseif($category->slug === 'ebooks-courses')
+                            &#x1F4DA;
+                        @elseif($category->slug === 'computer-hardware')
+                            &#x1F5A5;
+                        @elseif($category->slug === 'networking-equipment')
+                            &#x1F310;
+                        @elseif($category->slug === 'accessories-peripherals')
+                            &#x1F3A7;
+                        @else
+                            &#x1F527;
+                        @endif
                     </div>
                     <div style="font-weight: 600;">{{ $category->name }}</div>
                 </a>

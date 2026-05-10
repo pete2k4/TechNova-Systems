@@ -37,6 +37,12 @@ class CategorySeeder extends Seeder
                 'type' => 'physical',
             ],
             [
+                'name' => 'Accessories & Peripherals',
+                'slug' => 'accessories-peripherals',
+                'description' => 'Physical accessories and peripherals for devices',
+                'type' => 'physical',
+            ],
+            [
                 'name' => 'Mixed Tech Products',
                 'slug' => 'mixed-tech',
                 'description' => 'Both digital and physical technology products',
